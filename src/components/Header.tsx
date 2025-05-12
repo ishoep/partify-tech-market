@@ -3,7 +3,6 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import CitySelector from '@/components/CitySelector';
 import { 
   Heart, MessageCircle, User, LogIn, Package, 
   LogOut, ShoppingBag, Menu, X 
@@ -40,20 +39,15 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="glass-card z-50 sticky top-0 left-0 right-0 px-4 py-3 mb-6 border-b">
+    <header className="bg-white dark:bg-black z-50 sticky top-0 left-0 right-0 px-3 py-2 mb-2 border-b">
       <div className="container flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold">
-          Logo
+          telepart
         </Link>
 
-        {/* City Selector */}
-        <div className="hidden md:block">
-          <CitySelector />
-        </div>
-
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-2">
           {currentUser ? (
             <>
               <Button
@@ -83,7 +77,7 @@ const Header: React.FC = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-1">
+                    <Avatar className="h-6 w-6 mr-1">
                       <AvatarFallback>
                         {currentUser.displayName
                           ? getInitials(currentUser.displayName)
@@ -167,13 +161,11 @@ const Header: React.FC = () => {
         {/* Mobile Menu */}
         <div
           className={cn(
-            "fixed inset-0 top-[62px] z-40 md:hidden bg-background",
+            "fixed inset-0 top-[53px] z-40 md:hidden bg-background",
             isMenuOpen ? "flex flex-col" : "hidden"
           )}
         >
-          <div className="flex flex-col p-4 space-y-4">
-            <CitySelector />
-            
+          <div className="flex flex-col p-4 space-y-2">
             {currentUser ? (
               <>
                 <Button

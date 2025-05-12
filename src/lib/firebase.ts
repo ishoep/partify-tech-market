@@ -113,58 +113,73 @@ export const createProduct = async (productData: any) => {
 };
 
 export const getProducts = async (filters: any = {}) => {
-  const productsRef = collection(db, "products");
-  
-  let q = query(productsRef);
-  
-  if (filters.category) {
-    q = query(productsRef, where("category", "==", filters.category));
+  try {
+    const productsRef = collection(db, "products");
+    
+    let q = query(productsRef);
+    
+    if (filters.category) {
+      q = query(productsRef, where("category", "==", filters.category));
+    }
+    
+    if (filters.shopId) {
+      q = query(productsRef, where("shopId", "==", filters.shopId));
+    }
+    
+    if (filters.status) {
+      q = query(productsRef, where("status", "==", filters.status));
+    }
+    
+    const querySnapshot = await getDocs(q);
+    const products: any[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+    
+    return products;
+  } catch (error) {
+    console.error("Error in getProducts:", error);
+    return [];
   }
-  
-  if (filters.shopId) {
-    q = query(productsRef, where("shopId", "==", filters.shopId));
-  }
-  
-  if (filters.status) {
-    q = query(productsRef, where("status", "==", filters.status));
-  }
-  
-  const querySnapshot = await getDocs(q);
-  const products: any[] = [];
-  
-  querySnapshot.forEach((doc) => {
-    products.push({ id: doc.id, ...doc.data() });
-  });
-  
-  return products;
 };
 
 export const searchProducts = async (searchTerm: string, filters: any = {}) => {
-  // Due to Firebase limitations with text search, we'll fetch all products
-  // and filter them client-side
-  const products = await getProducts(filters);
-  
-  if (!searchTerm) return products;
-  
-  const lowerSearchTerm = searchTerm.toLowerCase();
-  
-  return products.filter((product) => {
-    return (
-      product.name?.toLowerCase().includes(lowerSearchTerm) ||
-      product.model?.toLowerCase().includes(lowerSearchTerm) ||
-      product.category?.toLowerCase().includes(lowerSearchTerm) ||
-      product.shopName?.toLowerCase().includes(lowerSearchTerm)
-    );
-  });
+  try {
+    // Due to Firebase limitations with text search, we'll fetch all products
+    // and filter them client-side
+    const products = await getProducts(filters);
+    
+    if (!searchTerm) return products;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    return products.filter((product) => {
+      return (
+        product.name?.toLowerCase().includes(lowerSearchTerm) ||
+        product.model?.toLowerCase().includes(lowerSearchTerm) ||
+        product.category?.toLowerCase().includes(lowerSearchTerm) ||
+        product.shopName?.toLowerCase().includes(lowerSearchTerm)
+      );
+    });
+  } catch (error) {
+    console.error("Error in searchProducts:", error);
+    return [];
+  }
 };
 
 export const getProductById = async (productId: string) => {
-  const docRef = doc(db, "products", productId);
-  const docSnap = await getDoc(docRef);
-  
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() };
-  } else {
+  try {
+    const docRef = doc(db, "products", productId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error in getProductById:", error);
     return null;
   }
 };
@@ -235,133 +250,204 @@ export const updateTaskStatus = async (taskId: string, completed: boolean) => {
 };
 
 // Favorite functions
+
+// Check if a product is already in favorites
+export const isProductInFavorites = async (userId: string, productId: string) => {
+  try {
+    const favoritesRef = collection(db, "favorites");
+    const q = query(
+      favoritesRef,
+      where("userId", "==", userId),
+      where("productId", "==", productId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error("Error checking favorites:", error);
+    return false;
+  }
+};
+
+// Add to favorites only if not already added
 export const addToFavorites = async (userId: string, productId: string) => {
-  const favoritesRef = collection(db, "favorites");
-  return addDoc(favoritesRef, {
-    userId,
-    productId,
-    createdAt: new Date(),
-  });
+  try {
+    // Check if already in favorites
+    const alreadyInFavorites = await isProductInFavorites(userId, productId);
+    
+    if (alreadyInFavorites) {
+      console.log("Product already in favorites");
+      return { success: false, message: "Товар уже в избранном" };
+    }
+    
+    // Add to favorites
+    const favoritesRef = collection(db, "favorites");
+    await addDoc(favoritesRef, {
+      userId,
+      productId,
+      createdAt: new Date(),
+    });
+    
+    return { success: true, message: "Товар добавлен в избранное" };
+  } catch (error) {
+    console.error("Error adding to favorites:", error);
+    throw error;
+  }
 };
 
 export const getFavorites = async (userId: string) => {
-  const favoritesRef = collection(db, "favorites");
-  const q = query(favoritesRef, where("userId", "==", userId));
-  
-  const querySnapshot = await getDocs(q);
-  const favoriteIds: string[] = [];
-  
-  querySnapshot.forEach((doc) => {
-    favoriteIds.push(doc.data().productId);
-  });
-  
-  // Get full product details for each favorite
-  const favoriteProducts: any[] = [];
-  
-  for (const productId of favoriteIds) {
-    const product = await getProductById(productId);
-    if (product) {
-      favoriteProducts.push(product);
+  try {
+    const favoritesRef = collection(db, "favorites");
+    const q = query(favoritesRef, where("userId", "==", userId));
+    
+    const querySnapshot = await getDocs(q);
+    const favoriteIds: string[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      favoriteIds.push(doc.data().productId);
+    });
+    
+    // Get full product details for each favorite
+    const favoriteProducts: any[] = [];
+    
+    for (const productId of favoriteIds) {
+      const product = await getProductById(productId);
+      if (product) {
+        favoriteProducts.push(product);
+      }
     }
+    
+    return favoriteProducts;
+  } catch (error) {
+    console.error("Error getting favorites:", error);
+    return [];
   }
-  
-  return favoriteProducts;
 };
 
 export const removeFromFavorites = async (userId: string, productId: string) => {
-  const favoritesRef = collection(db, "favorites");
-  const q = query(
-    favoritesRef,
-    where("userId", "==", userId),
-    where("productId", "==", productId)
-  );
-  
-  const querySnapshot = await getDocs(q);
-  
-  querySnapshot.forEach(async (document) => {
-    await deleteDoc(doc(db, "favorites", document.id));
-  });
+  try {
+    const favoritesRef = collection(db, "favorites");
+    const q = query(
+      favoritesRef,
+      where("userId", "==", userId),
+      where("productId", "==", productId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    querySnapshot.forEach(async (document) => {
+      await deleteDoc(doc(db, "favorites", document.id));
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error removing from favorites:", error);
+    throw error;
+  }
 };
 
 // Chat functions
 export const createChat = async (buyerId: string, sellerId: string, productId: string) => {
-  // Check if chat already exists
-  const chatsRef = collection(db, "chats");
-  const q = query(
-    chatsRef,
-    where("buyerId", "==", buyerId),
-    where("sellerId", "==", sellerId),
-    where("productId", "==", productId)
-  );
-  
-  const querySnapshot = await getDocs(q);
-  
-  if (!querySnapshot.empty) {
-    // Chat already exists, return its ID
-    return querySnapshot.docs[0].id;
+  try {
+    // Check if chat already exists
+    const chatsRef = collection(db, "chats");
+    const q = query(
+      chatsRef,
+      where("buyerId", "==", buyerId),
+      where("sellerId", "==", sellerId),
+      where("productId", "==", productId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      // Chat already exists, return its ID
+      return querySnapshot.docs[0].id;
+    }
+    
+    // Create a new chat
+    const chatRef = await addDoc(chatsRef, {
+      buyerId,
+      sellerId,
+      productId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    
+    return chatRef.id;
+  } catch (error) {
+    console.error("Error creating chat:", error);
+    throw error;
   }
-  
-  // Create a new chat
-  const chatRef = await addDoc(chatsRef, {
-    buyerId,
-    sellerId,
-    productId,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-  
-  return chatRef.id;
 };
 
 export const getUserChats = async (userId: string) => {
-  const chatsRef = collection(db, "chats");
-  const buyerQuery = query(chatsRef, where("buyerId", "==", userId));
-  const sellerQuery = query(chatsRef, where("sellerId", "==", userId));
-  
-  const buyerChats = await getDocs(buyerQuery);
-  const sellerChats = await getDocs(sellerQuery);
-  
-  const chats: any[] = [];
-  
-  buyerChats.forEach((doc) => {
-    chats.push({ id: doc.id, ...doc.data(), isOwner: false });
-  });
-  
-  sellerChats.forEach((doc) => {
-    chats.push({ id: doc.id, ...doc.data(), isOwner: true });
-  });
-  
-  return chats;
+  try {
+    const chatsRef = collection(db, "chats");
+    const buyerQuery = query(chatsRef, where("buyerId", "==", userId));
+    const sellerQuery = query(chatsRef, where("sellerId", "==", userId));
+    
+    const buyerChats = await getDocs(buyerQuery);
+    const sellerChats = await getDocs(sellerQuery);
+    
+    const chats: any[] = [];
+    
+    buyerChats.forEach((doc) => {
+      chats.push({ id: doc.id, ...doc.data(), isOwner: false });
+    });
+    
+    sellerChats.forEach((doc) => {
+      chats.push({ id: doc.id, ...doc.data(), isOwner: true });
+    });
+    
+    return chats;
+  } catch (error) {
+    console.error("Error getting user chats:", error);
+    return [];
+  }
 };
 
 export const sendMessage = async (chatId: string, senderId: string, content: string) => {
-  const messagesRef = collection(db, `chats/${chatId}/messages`);
-  
-  // Update chat's updatedAt timestamp
-  const chatRef = doc(db, "chats", chatId);
-  await updateDoc(chatRef, {
-    updatedAt: new Date(),
-  });
-  
-  return addDoc(messagesRef, {
-    senderId,
-    content,
-    timestamp: new Date(),
-  });
+  try {
+    const messagesRef = collection(db, `chats/${chatId}/messages`);
+    
+    // Update chat's updatedAt timestamp
+    const chatRef = doc(db, "chats", chatId);
+    await updateDoc(chatRef, {
+      updatedAt: new Date(),
+    });
+    
+    return addDoc(messagesRef, {
+      senderId,
+      content,
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+    throw error;
+  }
 };
 
 export const getMessages = async (chatId: string) => {
-  const messagesRef = collection(db, `chats/${chatId}/messages`);
-  const q = query(messagesRef);
-  
-  const querySnapshot = await getDocs(q);
-  const messages: any[] = [];
-  
-  querySnapshot.forEach((doc) => {
-    messages.push({ id: doc.id, ...doc.data() });
-  });
-  
-  return messages.sort((a, b) => a.timestamp - b.timestamp);
+  try {
+    const messagesRef = collection(db, `chats/${chatId}/messages`);
+    const q = query(messagesRef);
+    
+    const querySnapshot = await getDocs(q);
+    const messages: any[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      messages.push({ id: doc.id, ...doc.data() });
+    });
+    
+    return messages.sort((a, b) => {
+      if (!a.timestamp || !b.timestamp) return 0;
+      return a.timestamp.seconds - b.timestamp.seconds;
+    });
+  } catch (error) {
+    console.error("Error getting messages:", error);
+    return [];
+  }
 };
 
 export { app, auth, db, analytics };

@@ -35,8 +35,11 @@ const ChatDetail: React.FC = () => {
       setError(null);
       
       try {
+        console.log("Fetching chat data for chatId:", chatId);
+        
         // Get messages
         const chatMessages = await getMessages(chatId);
+        console.log("Fetched messages:", chatMessages);
         setMessages(chatMessages);
         
         // Get first message to determine chat participants
@@ -46,12 +49,19 @@ const ChatDetail: React.FC = () => {
             ? firstMessage.receiverId
             : firstMessage.senderId;
           
+          console.log("Partner ID:", partnerId);
+          
           // Get partner details
-          const partnerData = await getUserProfile(partnerId);
-          if (partnerData) {
-            setPartner(partnerData);
+          if (partnerId) {
+            const partnerData = await getUserProfile(partnerId);
+            if (partnerData) {
+              console.log("Partner data:", partnerData);
+              setPartner(partnerData);
+            } else {
+              console.warn("Не удалось получить данные собеседника");
+            }
           } else {
-            console.warn("Не удалось получить данные собеседника");
+            console.warn("Partner ID not found in first message");
           }
           
           // Get product details if available
@@ -59,12 +69,15 @@ const ChatDetail: React.FC = () => {
             try {
               const productData = await getProductById(firstMessage.productId);
               if (productData) {
+                console.log("Product data:", productData);
                 setProduct(productData);
               }
             } catch (productError) {
               console.error("Ошибка при загрузке данных товара:", productError);
             }
           }
+        } else {
+          console.log("No messages found in this chat");
         }
       } catch (error) {
         console.error("Error fetching chat data:", error);
@@ -109,6 +122,7 @@ const ChatDetail: React.FC = () => {
     if (!newMessage.trim() || !currentUser || !chatId) return;
     
     try {
+      console.log("Sending message:", newMessage);
       await sendMessage(chatId, currentUser.uid, newMessage);
       setNewMessage('');
       
@@ -139,8 +153,8 @@ const ChatDetail: React.FC = () => {
 
   return (
     <MainLayout compact>
-      <div className="flex flex-col h-[calc(100vh-140px)]">
-        <div className="mb-3 flex justify-between items-center">
+      <div className="flex flex-col h-[calc(100vh-100px)]">
+        <div className="mb-2 flex justify-between items-center">
           <Button
             variant="outline"
             size="sm"
@@ -163,7 +177,7 @@ const ChatDetail: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto border rounded p-3 mb-3">
+        <div className="flex-1 overflow-y-auto border rounded p-2 mb-2">
           {loading ? (
             <div className="h-full flex items-center justify-center">
               <p>Загрузка сообщений...</p>
@@ -178,7 +192,7 @@ const ChatDetail: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -204,7 +218,7 @@ const ChatDetail: React.FC = () => {
                       }`}
                     >
                       {message.timestamp && format(
-                        new Date(message.timestamp.toDate()),
+                        new Date(message.timestamp.toDate ? message.timestamp.toDate() : message.timestamp),
                         'HH:mm'
                       )}
                     </div>
