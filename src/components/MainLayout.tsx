@@ -8,16 +8,21 @@ interface MainLayoutProps {
   className?: string;
   compact?: boolean;
   fullWidth?: boolean;
+  plainBackground?: boolean;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
   className,
   compact = false,
-  fullWidth = false
+  fullWidth = false,
+  plainBackground = false
 }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={cn(
+      "min-h-screen flex flex-col",
+      plainBackground && "bg-white dark:bg-black"
+    )}>
       <Header />
       <main className={cn(
         "flex-1", 

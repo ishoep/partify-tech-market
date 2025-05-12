@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 240 10% 98%;
+    --background: 0 0% 100%;
     --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
@@ -34,15 +34,6 @@
     --ring: 250 60% 50%;
 
     --radius: 0.3rem;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 250 60% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 30% 95%;
-    --sidebar-accent-foreground: 240 10% 10%;
-    --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 250 60% 50%;
   }
 
   .dark {
@@ -73,15 +64,6 @@
     --border: 240 6% 15%;
     --input: 240 6% 15%;
     --ring: 250 60% 50%;
-    
-    --sidebar-background: 240 10% 8%;
-    --sidebar-foreground: 240 5% 95%;
-    --sidebar-primary: 250 60% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 6% 15%;
-    --sidebar-accent-foreground: 240 5% 95%;
-    --sidebar-border: 240 6% 15%;
-    --sidebar-ring: 250 60% 50%;
   }
 }
 
@@ -95,12 +77,7 @@
   }
 }
 
-/* Removed glass and simplified styles */
-.glass-card {
-  @apply bg-white dark:bg-black/90 border;
-}
-
-/* Reduced spacing */
+/* Simplified styles */
 .page-transition {
   @apply transition-all duration-200;
 }

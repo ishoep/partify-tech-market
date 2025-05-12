@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { getShopByUserId } from '@/lib/firebase';
@@ -62,30 +61,28 @@ const ProfileSidebar: React.FC = () => {
   ];
 
   return (
-    <Card className="glass-card border-0">
-      <CardContent className="p-4">
-        <div className="space-y-2">
-          {links.map((link) => (
-            <Button
-              key={link.path}
-              variant={location.pathname === link.path ? "default" : "ghost"}
-              className={cn(
-                "w-full justify-start",
-                location.pathname === link.path
-                  ? ""
-                  : "text-muted-foreground"
-              )}
-              asChild
-            >
-              <Link to={link.path}>
-                {link.icon}
-                {link.label}
-              </Link>
-            </Button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="border rounded p-4">
+      <div className="space-y-2">
+        {links.map((link) => (
+          <Button
+            key={link.path}
+            variant={location.pathname === link.path ? "default" : "ghost"}
+            className={cn(
+              "w-full justify-start",
+              location.pathname === link.path
+                ? ""
+                : "text-muted-foreground"
+            )}
+            asChild
+          >
+            <Link to={link.path}>
+              {link.icon}
+              {link.label}
+            </Link>
+          </Button>
+        ))}
+      </div>
+    </div>
   );
 };
 
