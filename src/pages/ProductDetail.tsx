@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ const ProductDetail: React.FC = () => {
         const productData = await getProductById(productId);
         
         if (productData) {
-          setProduct(productData);
+          setProduct(productData as Product);
           
           // Fetch shop data
           const shopData = await getShopByUserId(productData.shopId);
@@ -110,7 +111,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleStartChat = async () => {
-    if (!currentUser) {
+    if (!currentUser || !product) {
       toast({
         variant: "destructive",
         title: "Требуется авторизация",
@@ -186,8 +187,8 @@ const ProductDetail: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="glass-card rounded-lg overflow-hidden">
           <img
-            src={product.imageUrl || "https://placehold.co/600x400?text=Нет+фото"}
-            alt={product.name}
+            src={product?.imageUrl || "https://placehold.co/600x400?text=Нет+фото"}
+            alt={product?.name}
             className="w-full h-auto object-cover max-h-[500px]"
           />
         </div>
@@ -195,7 +196,7 @@ const ProductDetail: React.FC = () => {
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-left">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-left">{product?.name}</h1>
               {shop?.hasDelivery && (
                 <div title="Есть доставка">
                   <Truck className="h-5 w-5 text-primary" />
@@ -203,15 +204,15 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
             <p className="text-muted-foreground mt-1 text-left">
-              {product.category} {product.model ? `- ${product.model}` : ''}
+              {product?.category} {product?.model ? `- ${product.model}` : ''}
             </p>
           </div>
           
           <div className="text-2xl font-bold text-left">
-            {product.price?.toLocaleString()} UZS
+            {product?.price?.toLocaleString()} UZS
           </div>
           
-          {product.description && (
+          {product?.description && (
             <div className="text-left">
               <h2 className="text-lg font-medium mb-2">Описание</h2>
               <p className="text-muted-foreground whitespace-pre-line">
@@ -241,7 +242,7 @@ const ProductDetail: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     className="flex items-center"
-                    onClick={() => navigate(`/shops/${product.shopId}`)}
+                    onClick={() => navigate(`/shops/${product?.shopId}`)}
                   >
                     <ShoppingBag className="h-4 w-4 mr-1" />
                     В магазин

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,10 +15,12 @@ import MainLayout from '@/components/MainLayout';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firebase';
-import { auth, EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import { EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
 const Profile: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
+  const auth = getAuth();
   const [name, setName] = useState(currentUser?.displayName || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
   const [currentPassword, setCurrentPassword] = useState('');
