@@ -21,9 +21,22 @@ import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
 import { createShop, getShopByUserId, updateShop, getProducts } from '@/lib/firebase';
 
+interface Shop {
+  id: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  telegram?: string;
+  website?: string;
+  description?: string;
+  address?: string;
+  hasDelivery?: boolean;
+  [key: string]: any; // Allow additional properties
+}
+
 const Shop: React.FC = () => {
   const { currentUser } = useAuth();
-  const [shop, setShop] = useState<any>(null);
+  const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<any[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
@@ -49,16 +62,17 @@ const Shop: React.FC = () => {
         const shopData = await getShopByUserId(currentUser.uid);
         
         if (shopData) {
-          setShop(shopData);
+          const typedShopData = shopData as Shop;
+          setShop(typedShopData);
           // Fill form fields with shop data
-          setName(shopData.name || '');
-          setPhone(shopData.phone || '');
-          setEmail(shopData.email || currentUser.email || '');
-          setTelegram(shopData.telegram || '');
-          setWebsite(shopData.website || '');
-          setDescription(shopData.description || '');
-          setAddress(shopData.address || '');
-          setHasDelivery(shopData.hasDelivery || false);
+          setName(typedShopData.name || '');
+          setPhone(typedShopData.phone || '');
+          setEmail(typedShopData.email || currentUser.email || '');
+          setTelegram(typedShopData.telegram || '');
+          setWebsite(typedShopData.website || '');
+          setDescription(typedShopData.description || '');
+          setAddress(typedShopData.address || '');
+          setHasDelivery(typedShopData.hasDelivery || false);
           
           // Fetch shop products
           const shopProducts = await getProducts({ shopId: currentUser.uid });

@@ -16,6 +16,7 @@ import MainLayout from '@/components/MainLayout';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firebase';
+import { auth, EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
 const Profile: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
@@ -35,13 +36,15 @@ const Profile: React.FC = () => {
     
     try {
       // Update name
-      await currentUser?.updateProfile({ displayName: name });
+      if (currentUser) {
+        await updateProfile(currentUser, { displayName: name });
       
-      // Update profile in Firestore
-      await updateUserProfile(currentUser?.uid as string, {
-        displayName: name,
-        phone,
-      });
+        // Update profile in Firestore
+        await updateUserProfile(currentUser.uid, {
+          displayName: name,
+          phone,
+        });
+      }
       
       toast({
         title: "Успех",
@@ -73,26 +76,28 @@ const Profile: React.FC = () => {
     setLoading(true);
     
     try {
-      // Reauthenticate with current password
-      const credential = auth.EmailAuthProvider.credential(
-        currentUser?.email as string,
-        currentPassword
-      );
-      
-      await currentUser?.reauthenticateWithCredential(credential);
-      
-      // Change password
-      await currentUser?.updatePassword(newPassword);
-      
-      toast({
-        title: "Успех",
-        description: "Пароль успешно изменен.",
-      });
-      
-      // Clear password fields
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      if (currentUser && currentUser.email) {
+        // Reauthenticate with current password
+        const credential = EmailAuthProvider.credential(
+          currentUser.email,
+          currentPassword
+        );
+        
+        await reauthenticateWithCredential(currentUser, credential);
+        
+        // Change password
+        await updatePassword(currentUser, newPassword);
+        
+        toast({
+          title: "Успех",
+          description: "Пароль успешно изменен.",
+        });
+        
+        // Clear password fields
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

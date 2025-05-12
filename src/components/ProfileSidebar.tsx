@@ -9,7 +9,7 @@ import {
   User, 
   ShoppingBag, 
   Package, 
-  Tool,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -57,7 +57,7 @@ const ProfileSidebar: React.FC = () => {
     {
       label: "Мастерская",
       path: "/workshop",
-      icon: <Tool className="h-4 w-4 mr-2" />,
+      icon: <Settings className="h-4 w-4 mr-2" />,
     },
   ];
 

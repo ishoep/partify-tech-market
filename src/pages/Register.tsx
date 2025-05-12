@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
 import { useAuth } from '@/context/AuthContext';
 import { createUserProfile } from '@/lib/firebase';
+import { updateProfile } from "firebase/auth";
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -47,7 +48,7 @@ const Register: React.FC = () => {
       const user = await register(email, password);
       
       // Update profile with name
-      await user.updateProfile({ displayName: name });
+      await updateProfile(user, { displayName: name });
       
       // Create user profile in Firestore
       await createUserProfile(user.uid, {

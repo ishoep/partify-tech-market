@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,10 +8,21 @@ import { useAuth } from '@/context/AuthContext';
 import { getProductById, getShopByUserId, addToFavorites, removeFromFavorites, getFavorites, createChat } from '@/lib/firebase';
 import { Heart, ShoppingBag, MessageCircle, Truck, ArrowLeft } from 'lucide-react';
 
+interface Product {
+  id: string;
+  name?: string;
+  price?: number;
+  description?: string;
+  category?: string;
+  model?: string;
+  imageUrl?: string;
+  shopId: string;
+}
+
 const ProductDetail: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const { currentUser } = useAuth();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);

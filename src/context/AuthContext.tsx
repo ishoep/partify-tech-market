@@ -1,6 +1,5 @@
-
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { User } from "firebase/auth";
+import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { auth, getUserProfile } from "@/lib/firebase";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -45,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      await auth.signInWithEmailAndPassword(email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Success",
         description: "You have successfully logged in.",
@@ -62,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string) => {
     try {
-      const result = await auth.createUserWithEmailAndPassword(email, password);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       toast({
         title: "Success",
         description: "Account created successfully.",
@@ -98,13 +97,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: any) => {
+  const updateUserProfile = async (data: any) => {
     if (!currentUser) {
       throw new Error("No user is signed in");
     }
     
     try {
-      await auth.currentUser?.updateProfile(data);
+      await updateProfile(currentUser, data);
       setCurrentUser({ ...currentUser, ...data });
       toast({
         title: "Success",
@@ -127,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
-    updateProfile,
+    updateProfile: updateUserProfile,
   };
 
   return (
