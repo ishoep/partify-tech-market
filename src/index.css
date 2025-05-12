@@ -33,7 +33,7 @@
     --input: 240 6% 90%;
     --ring: 250 60% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.3rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5% 26%;
@@ -95,18 +95,18 @@
   }
 }
 
-/* Glass effect styles */
+/* Упрощенные стили, без эффекта стекла и теней */
 .glass {
-  @apply backdrop-blur-sm bg-white/30 dark:bg-black/30 border border-white/20 dark:border-white/10 shadow-glass;
+  @apply bg-white/90 dark:bg-black/80 border border-white/20 dark:border-white/10;
 }
 
 .glass-card {
-  @apply bg-white/70 dark:bg-black/70 border border-white/20 dark:border-white/10 shadow-glass backdrop-blur-sm;
+  @apply bg-white/90 dark:bg-black/80 border border-white/20 dark:border-white/10;
 }
 
-/* Transitions */
+/* Уменьшенные отступы */
 .page-transition {
-  @apply transition-all duration-300 ease-in-out;
+  @apply transition-all duration-200;
 }
 
 /* Text alignment */
@@ -114,13 +114,13 @@
   @apply text-left;
 }
 
-/* Form styles */
+/* Упрощенные стили форм */
 .form-container {
-  @apply w-full max-w-md mx-auto p-6 glass-card rounded-lg;
+  @apply w-full max-w-md mx-auto p-4 border rounded;
 }
 
 .form-group {
-  @apply mb-4;
+  @apply mb-3;
 }
 
 .form-label {
@@ -128,5 +128,5 @@
 }
 
 .form-input {
-  @apply w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  @apply w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50;
 }

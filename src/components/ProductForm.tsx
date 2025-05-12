@@ -4,22 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
 import { uploadImage } from '@/lib/imgbb';
 import { createProduct } from '@/lib/firebase';
 
+// Упрощенный список категорий
 const categories = [
+  "Запчасти",
   "Телефоны",
-  "Планшеты",
-  "Ноутбуки",
   "Аксессуары"
 ];
 
@@ -94,7 +87,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       
       toast({
         title: "Успех",
-        description: "Товар успешно добавлен.",
+        description: "Товар добавлен",
       });
       
       // Reset form
@@ -112,7 +105,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось добавить товар.",
+        description: error.message || "Не удалось добавить товар",
       });
     } finally {
       setLoading(false);
@@ -120,112 +113,110 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
   };
 
   return (
-    <Card className="glass-card border-0">
-      <CardContent className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-left block">Название*</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="model" className="text-left block">Модель</Label>
-              <Input
-                id="model"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-left block">Категория*</Label>
-              <Select
-                value={category}
-                onValueChange={setCategory}
-                required
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Выберите категорию" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="price" className="text-left block">Цена (UZS)*</Label>
-              <Input
-                id="price"
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                min={0}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="quantity" className="text-left block">Количество</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                min={1}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="image" className="text-left block">Изображение</Label>
-              <Input
-                id="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-              {imagePreview && (
-                <div className="mt-2">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="max-h-32 rounded"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-left block">Описание</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
+    <div className="border rounded p-3">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="name" className="text-left block mb-1">Название*</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
           
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Добавление..." : "Добавить товар"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <div>
+            <Label htmlFor="model" className="text-left block mb-1">Модель</Label>
+            <Input
+              id="model"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="category" className="text-left block mb-1">Категория*</Label>
+            <Select
+              value={category}
+              onValueChange={setCategory}
+              required
+            >
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Выберите категорию" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="price" className="text-left block mb-1">Цена (UZS)*</Label>
+            <Input
+              id="price"
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min={0}
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="quantity" className="text-left block mb-1">Количество</Label>
+            <Input
+              id="quantity"
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              min={1}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="image" className="text-left block mb-1">Изображение</Label>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-h-24 rounded"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div>
+          <Label htmlFor="description" className="text-left block mb-1">Описание</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+        </div>
+        
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full"
+        >
+          {loading ? "Добавление..." : "Добавить товар"}
+        </Button>
+      </form>
+    </div>
   );
 };
 

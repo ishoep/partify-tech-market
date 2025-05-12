@@ -16,6 +16,7 @@ const ChatDetail: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [partner, setPartner] = useState<any>(null);
   const [product, setProduct] = useState<any>(null);
   const { toast } = useToast();
@@ -24,9 +25,15 @@ const ChatDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchChatData = async () => {
-      if (!currentUser || !chatId) return;
+      if (!currentUser || !chatId) {
+        setError("Не удалось загрузить данные чата. Попробуйте еще раз.");
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
+      setError(null);
+      
       try {
         // Get messages
         const chatMessages = await getMessages(chatId);
@@ -41,20 +48,31 @@ const ChatDetail: React.FC = () => {
           
           // Get partner details
           const partnerData = await getUserProfile(partnerId);
-          setPartner(partnerData);
+          if (partnerData) {
+            setPartner(partnerData);
+          } else {
+            console.warn("Не удалось получить данные собеседника");
+          }
           
           // Get product details if available
           if (firstMessage.productId) {
-            const productData = await getProductById(firstMessage.productId);
-            setProduct(productData);
+            try {
+              const productData = await getProductById(firstMessage.productId);
+              if (productData) {
+                setProduct(productData);
+              }
+            } catch (productError) {
+              console.error("Ошибка при загрузке данных товара:", productError);
+            }
           }
         }
       } catch (error) {
         console.error("Error fetching chat data:", error);
+        setError("Не удалось загрузить данные чата. Попробуйте еще раз.");
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to load chat",
+          title: "Ошибка",
+          description: "Не удалось загрузить чат",
         });
       } finally {
         setLoading(false);
@@ -63,17 +81,19 @@ const ChatDetail: React.FC = () => {
 
     fetchChatData();
     
-    // Set up real-time listener for new messages
+    // Set up polling for new messages
     const intervalId = setInterval(async () => {
+      if (!currentUser || !chatId) return;
+      
       try {
-        const chatMessages = await getMessages(chatId as string);
+        const chatMessages = await getMessages(chatId);
         if (chatMessages.length !== messages.length) {
           setMessages(chatMessages);
         }
       } catch (error) {
         console.error("Error refreshing messages:", error);
       }
-    }, 3000);
+    }, 5000);
     
     return () => clearInterval(intervalId);
   }, [currentUser, chatId, toast]);
@@ -99,15 +119,28 @@ const ChatDetail: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось отправить сообщение.",
+        description: error.message || "Не удалось отправить сообщение",
       });
     }
   };
 
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh]">
+          <div className="text-center space-y-4">
+            <p className="text-destructive">{error}</p>
+            <Button onClick={() => navigate('/chats')}>Вернуться к списку чатов</Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
-    <MainLayout>
-      <div className="flex flex-col h-[calc(100vh-200px)]">
-        <div className="mb-4 flex justify-between items-center">
+    <MainLayout compact>
+      <div className="flex flex-col h-[calc(100vh-140px)]">
+        <div className="mb-3 flex justify-between items-center">
           <Button
             variant="outline"
             size="sm"
@@ -130,7 +163,7 @@ const ChatDetail: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto glass-card p-4 mb-4 rounded-lg border-0">
+        <div className="flex-1 overflow-y-auto border rounded p-3 mb-3">
           {loading ? (
             <div className="h-full flex items-center justify-center">
               <p>Загрузка сообщений...</p>
@@ -138,14 +171,14 @@ const ChatDetail: React.FC = () => {
           ) : messages.length === 0 ? (
             <div className="h-full flex items-center justify-center text-center">
               <div>
-                <div className="text-5xl mb-4">💬</div>
+                <div className="text-4xl mb-3">💬</div>
                 <p className="text-muted-foreground">
-                  Нет сообщений. Начните общение прямо сейчас!
+                  Нет сообщений. Начните общение!
                 </p>
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -156,7 +189,7 @@ const ChatDetail: React.FC = () => {
                   }`}
                 >
                   <div
-                    className={`rounded-lg p-3 max-w-xs md:max-w-md ${
+                    className={`rounded p-2 max-w-xs md:max-w-md ${
                       message.senderId === currentUser?.uid
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
@@ -190,7 +223,7 @@ const ChatDetail: React.FC = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-1"
           />
-          <Button type="submit" disabled={!newMessage.trim()}>
+          <Button type="submit" disabled={!newMessage.trim() || loading}>
             <Send className="h-4 w-4 mr-2" />
             Отправить
           </Button>

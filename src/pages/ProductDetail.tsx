@@ -1,12 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
 import { useAuth } from '@/context/AuthContext';
 import { getProductById, getShopByUserId, addToFavorites, removeFromFavorites, getFavorites, createChat } from '@/lib/firebase';
 import { Heart, ShoppingBag, MessageCircle, Truck, ArrowLeft } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface Product {
   id: string;
@@ -16,7 +17,9 @@ interface Product {
   category?: string;
   model?: string;
   imageUrl?: string;
-  shopId: string;
+  shopId?: string; // Добавили shopId как необязательное свойство
+  shopName?: string;
+  hasDelivery?: boolean;
 }
 
 const ProductDetail: React.FC = () => {
@@ -38,11 +41,11 @@ const ProductDetail: React.FC = () => {
         const productData = await getProductById(productId);
         
         if (productData) {
-          // Use type assertion to ensure TypeScript knows productData includes shopId
+          // Явное приведение типа
           const typedProductData = productData as Product;
           setProduct(typedProductData);
           
-          // Fetch shop data - only if shopId exists
+          // Fetch shop data only if shopId exists
           if (typedProductData.shopId) {
             const shopData = await getShopByUserId(typedProductData.shopId);
             setShop(shopData);
@@ -66,8 +69,8 @@ const ProductDetail: React.FC = () => {
         console.error("Error fetching product data:", error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to load product data",
+          title: "Ошибка",
+          description: "Не удалось загрузить данные товара",
         });
       } finally {
         setLoading(false);
@@ -82,7 +85,7 @@ const ProductDetail: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Требуется авторизация",
-        description: "Пожалуйста, войдите в систему, чтобы добавить товар в избранное.",
+        description: "Пожалуйста, войдите в систему",
       });
       navigate('/login');
       return;
@@ -94,31 +97,31 @@ const ProductDetail: React.FC = () => {
         setIsFavorite(false);
         toast({
           title: "Успех",
-          description: "Товар удален из избранного.",
+          description: "Товар удален из избранного",
         });
       } else {
         await addToFavorites(currentUser.uid, productId as string);
         setIsFavorite(true);
         toast({
           title: "Успех",
-          description: "Товар добавлен в избранное.",
+          description: "Товар добавлен в избранное",
         });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось обновить избранное.",
+        description: error.message || "Не удалось обновить избранное",
       });
     }
   };
 
   const handleStartChat = async () => {
-    if (!currentUser || !product) {
+    if (!currentUser || !product?.shopId) {
       toast({
         variant: "destructive",
         title: "Требуется авторизация",
-        description: "Пожалуйста, войдите в систему, чтобы связаться с продавцом.",
+        description: "Пожалуйста, войдите в систему",
       });
       navigate('/login');
       return;
@@ -128,7 +131,7 @@ const ProductDetail: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Вы не можете начать чат с собой.",
+        description: "Вы не можете начать чат с собой",
       });
       return;
     }
@@ -145,7 +148,7 @@ const ProductDetail: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось начать чат.",
+        description: error.message || "Не удалось начать чат",
       });
     }
   };
@@ -153,7 +156,7 @@ const ProductDetail: React.FC = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p>Загрузка...</p>
         </div>
       </MainLayout>
@@ -163,7 +166,7 @@ const ProductDetail: React.FC = () => {
   if (!product) {
     return (
       <MainLayout>
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p>Товар не найден</p>
           <Button onClick={() => navigate('/')} className="mt-4">
             На главную
@@ -174,8 +177,8 @@ const ProductDetail: React.FC = () => {
   }
 
   return (
-    <MainLayout>
-      <div className="mb-4">
+    <MainLayout compact>
+      <div className="mb-3">
         <Button
           variant="outline"
           size="sm"
@@ -187,26 +190,26 @@ const ProductDetail: React.FC = () => {
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="glass-card rounded-lg overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border rounded overflow-hidden">
           <img
             src={product?.imageUrl || "https://placehold.co/600x400?text=Нет+фото"}
             alt={product?.name}
-            className="w-full h-auto object-cover max-h-[500px]"
+            className="w-full h-auto object-cover max-h-[400px]"
           />
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-left">{product?.name}</h1>
-              {shop?.hasDelivery && (
+              <h1 className="text-2xl font-bold text-left">{product?.name}</h1>
+              {product?.hasDelivery && (
                 <div title="Есть доставка">
                   <Truck className="h-5 w-5 text-primary" />
                 </div>
               )}
             </div>
-            <p className="text-muted-foreground mt-1 text-left">
+            <p className="text-muted-foreground text-left">
               {product?.category} {product?.model ? `- ${product.model}` : ''}
             </p>
           </div>
@@ -214,6 +217,8 @@ const ProductDetail: React.FC = () => {
           <div className="text-2xl font-bold text-left">
             {product?.price?.toLocaleString()} UZS
           </div>
+          
+          <Separator />
           
           {product?.description && (
             <div className="text-left">
@@ -224,7 +229,7 @@ const ProductDetail: React.FC = () => {
             </div>
           )}
           
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <Button onClick={handleAddToFavorites}>
               <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
               {isFavorite ? 'В избранном' : 'В избранное'}
@@ -237,28 +242,26 @@ const ProductDetail: React.FC = () => {
           </div>
           
           {shop && (
-            <Card className="glass-card border-0">
-              <CardContent className="p-4 text-left">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-medium">О продавце</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center"
-                    onClick={() => navigate(`/shops/${product?.shopId}`)}
-                  >
-                    <ShoppingBag className="h-4 w-4 mr-1" />
-                    В магазин
-                  </Button>
-                </div>
-                
-                <div className="text-sm space-y-1">
-                  <p className="font-medium">{shop.name}</p>
-                  <p>Телефон: {shop.phone}</p>
-                  {shop.address && <p>Адрес: {shop.address}</p>}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="border rounded p-3 text-left">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-medium">О продавце</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center"
+                  onClick={() => navigate(`/shops/${product?.shopId}`)}
+                >
+                  <ShoppingBag className="h-4 w-4 mr-1" />
+                  В магазин
+                </Button>
+              </div>
+              
+              <div className="text-sm space-y-1">
+                <p className="font-medium">{shop.name}</p>
+                <p>Телефон: {shop.phone}</p>
+                {shop.address && <p>Адрес: {shop.address}</p>}
+              </div>
+            </div>
           )}
         </div>
       </div>
