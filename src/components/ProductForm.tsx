@@ -67,8 +67,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       let imageUrl = '';
       
       if (image) {
-        // Upload image to imgBB
-        imageUrl = await uploadImage(image);
+        try {
+          // Попытка загрузки изображения
+          imageUrl = await uploadImage(image);
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          // Продолжаем без изображения, если загрузка не удалась
+        }
       }
       
       // Create product in Firestore
