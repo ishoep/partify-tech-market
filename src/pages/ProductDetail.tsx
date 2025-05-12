@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -39,11 +38,13 @@ const ProductDetail: React.FC = () => {
         const productData = await getProductById(productId);
         
         if (productData) {
-          setProduct(productData as Product);
+          // Use type assertion to ensure TypeScript knows productData includes shopId
+          const typedProductData = productData as Product;
+          setProduct(typedProductData);
           
-          // Fetch shop data
-          if (productData.shopId) {
-            const shopData = await getShopByUserId(productData.shopId);
+          // Fetch shop data - only if shopId exists
+          if (typedProductData.shopId) {
+            const shopData = await getShopByUserId(typedProductData.shopId);
             setShop(shopData);
           }
           
