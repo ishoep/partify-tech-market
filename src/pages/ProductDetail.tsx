@@ -42,8 +42,10 @@ const ProductDetail: React.FC = () => {
           setProduct(productData as Product);
           
           // Fetch shop data
-          const shopData = await getShopByUserId(productData.shopId);
-          setShop(shopData);
+          if (productData.shopId) {
+            const shopData = await getShopByUserId(productData.shopId);
+            setShop(shopData);
+          }
           
           // Check if product is in favorites
           if (currentUser) {
