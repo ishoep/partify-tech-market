@@ -21,6 +21,7 @@ import Favorites from "./pages/Favorites";
 import Chats from "./pages/Chats";
 import ChatDetail from "./pages/ChatDetail";
 import NotFound from "./pages/NotFound";
+import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/products/:productId" element={<ProductDetail />} />
+              <Route path="/search" element={<SearchResults />} />
               
               {/* Protected Routes */}
               <Route path="/profile" element={
