@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { getShopByUserId } from '@/lib/firebase';
 import { 
@@ -12,11 +13,22 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+
 const ProfileSidebar: React.FC = () => {
   const location = useLocation();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [hasShop, setHasShop] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   useEffect(() => {
     const checkShop = async () => {
@@ -80,8 +92,19 @@ const ProfileSidebar: React.FC = () => {
               {link.label}
             </Link>
           </Button>
+
         ))}
       </div>
+      <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center justify-start text-destructive"
+                  onClick={() => {
+                    handleLogout();
+                  }}
+                >
+                  Выйти
+                </Button>
     </div>
   );
 };

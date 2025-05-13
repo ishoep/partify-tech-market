@@ -19,7 +19,7 @@ import { getAuth } from "firebase/auth";
 import { EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
 const Profile: React.FC = () => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, logout } = useAuth();
   const auth = getAuth();
   const [name, setName] = useState(currentUser?.displayName || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
@@ -29,6 +29,15 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
