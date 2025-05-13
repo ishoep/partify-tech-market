@@ -74,14 +74,29 @@ const SearchResults = () => {
         
         console.log('Products after term filtering:', filteredByTerm);
         
-        // Filter by city if specified
-        let finalResults = filteredByTerm;
-        if (city) {
-          finalResults = filteredByTerm.filter(product => product.city === city);
-        }
+        // Sort and filter products:
+        // 1. Products from selected city first
+        // 2. Products from shops with delivery second
+        // 3. Other products last
+        let cityProducts: any[] = [];
+        let deliveryProducts: any[] = [];
+        let otherProducts: any[] = [];
         
-        console.log('Final filtered products:', finalResults);
-        setProducts(finalResults);
+        filteredByTerm.forEach(product => {
+          if (city && product.city === city) {
+            cityProducts.push(product);
+          } else if (product.hasDelivery) {
+            deliveryProducts.push(product);
+          } else {
+            otherProducts.push(product);
+          }
+        });
+        
+        // Combine all products in the right order
+        const sortedProducts = [...cityProducts, ...deliveryProducts, ...otherProducts];
+        console.log('Final sorted and filtered products:', sortedProducts);
+        
+        setProducts(sortedProducts);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
@@ -166,7 +181,8 @@ const SearchResults = () => {
         {/* Search results */}
         <div className="container py-4">
           <h2 className="text-xl font-medium mb-4">
-            Результаты поиска: {term} {category !== 'Все категории' ? `в категории ${category}` : ''}
+            {term ? `Результаты поиска: ${term}` : 'Все товары'}
+            {category !== 'Все категории' ? ` в категории ${category}` : ''}
             {city ? ` в городе ${city}` : ''}
           </h2>
           

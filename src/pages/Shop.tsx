@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Tabs,
   TabsContent,
@@ -19,6 +20,7 @@ import ProfileSidebar from '@/components/ProfileSidebar';
 import ProductList from '@/components/ProductList';
 import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
+import { useCity } from '@/context/CityContext';
 import { createShop, getShopByUserId, updateShop, getProducts } from '@/lib/firebase';
 
 interface Shop {
@@ -30,12 +32,14 @@ interface Shop {
   website?: string;
   description?: string;
   address?: string;
+  city?: string;
   hasDelivery?: boolean;
   [key: string]: any; // Allow additional properties
 }
 
 const Shop: React.FC = () => {
   const { currentUser } = useAuth();
+  const { cities } = useCity();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<any[]>([]);
@@ -51,6 +55,7 @@ const Shop: React.FC = () => {
   const [website, setWebsite] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [city, setCity] = useState(cities[0]);
   const [hasDelivery, setHasDelivery] = useState(false);
 
   useEffect(() => {
@@ -72,6 +77,7 @@ const Shop: React.FC = () => {
           setWebsite(typedShopData.website || '');
           setDescription(typedShopData.description || '');
           setAddress(typedShopData.address || '');
+          setCity(typedShopData.city || cities[0]);
           setHasDelivery(typedShopData.hasDelivery || false);
           
           // Fetch shop products
@@ -86,16 +92,16 @@ const Shop: React.FC = () => {
     };
 
     fetchShopData();
-  }, [currentUser]);
+  }, [currentUser, cities]);
 
   const handleCreateShop = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !email || !address) {
+    if (!name || !phone || !email || !address || !city) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес.",
+        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес, Город.",
       });
       return;
     }
@@ -111,6 +117,7 @@ const Shop: React.FC = () => {
         website,
         description,
         address,
+        city,
         hasDelivery,
       };
       
@@ -136,11 +143,11 @@ const Shop: React.FC = () => {
   const handleUpdateShop = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !email || !address) {
+    if (!name || !phone || !email || !address || !city) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес.",
+        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес, Город.",
       });
       return;
     }
@@ -156,6 +163,7 @@ const Shop: React.FC = () => {
         website,
         description,
         address,
+        city,
         hasDelivery,
       };
       
@@ -260,6 +268,24 @@ const Shop: React.FC = () => {
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://example.com"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-left block">Город*</Label>
+                    <Select
+                      value={city}
+                      onValueChange={setCity}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Выберите город" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((city) => (
+                          <SelectItem key={city} value={city}>
+                            {city}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="address" className="text-left block">Адрес*</Label>
@@ -373,6 +399,24 @@ const Shop: React.FC = () => {
                   
                   <TabsContent value="address" className="pt-4">
                     <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-left block">Город*</Label>
+                        <Select
+                          value={city}
+                          onValueChange={setCity}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Выберите город" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cities.map((cityName) => (
+                              <SelectItem key={cityName} value={cityName}>
+                                {cityName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div className="space-y-2">
                         <Label htmlFor="address" className="text-left block">Адрес*</Label>
                         <Input

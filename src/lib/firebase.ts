@@ -1,4 +1,3 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, DocumentData, QuerySnapshot } from "firebase/firestore";
@@ -103,10 +102,18 @@ export const createProduct = async (productData: any) => {
   const querySnapshot = await getDocs(q);
   
   const articleNumber = 10000 + querySnapshot.size;
+
+  // Get the shop data to include city and hasDelivery
+  let shopData = null;
+  if (productData.shopId) {
+    shopData = await getShopByUserId(productData.shopId);
+  }
   
   return addDoc(productsRef, {
     ...productData,
     articleNumber,
+    city: shopData?.city || null,
+    hasDelivery: shopData?.hasDelivery || false,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
