@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/components/MainLayout';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 import { useCity } from '@/context/CityContext';
+import { searchProducts } from '@/lib/firebase';
+import ProductList from '@/components/ProductList';
+import { useToast } from '@/components/ui/use-toast';
 
 // Simplified category list - same as Home page
 const categories = [
@@ -23,9 +26,47 @@ const SearchResults = () => {
   const city = searchParams.get('city') || '';
   
   const { selectedCity, cities, setSelectedCity } = useCity();
+  const { toast } = useToast();
   
-  const [searchTerm, setSearchTerm] = React.useState(term);
-  const [selectedCategory, setSelectedCategory] = React.useState(category);
+  const [searchTerm, setSearchTerm] = useState(term);
+  const [selectedCategory, setSelectedCategory] = useState(category);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      setLoading(true);
+      try {
+        const filters = {};
+        
+        // Only add category filter if not "All categories"
+        if (category !== 'Все категории') {
+          filters.category = category;
+        }
+        
+        // Search for products based on the search term and filters
+        const results = await searchProducts(term, filters);
+        
+        // Filter by city if specified
+        const filteredResults = city 
+          ? results.filter(product => product.city === city) 
+          : results;
+        
+        setProducts(filteredResults);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+        toast({
+          variant: "destructive",
+          title: "Ошибка",
+          description: "Не удалось загрузить результаты поиска.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+  }, [term, category, city, toast]);
   
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -100,11 +141,21 @@ const SearchResults = () => {
             {city ? ` в городе ${city}` : ''}
           </h2>
           
-          {/* This would be replaced with actual search results */}
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Нет результатов по вашему запросу</p>
-            <p className="text-sm mt-2">Попробуйте изменить параметры поиска</p>
-          </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <p>Загрузка результатов...</p>
+            </div>
+          ) : products.length > 0 ? (
+            <ProductList 
+              products={products} 
+              onUpdate={() => handleSearch()}
+            />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Нет результатов по вашему запросу</p>
+              <p className="text-sm mt-2">Попробуйте изменить параметры поиска</p>
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>
