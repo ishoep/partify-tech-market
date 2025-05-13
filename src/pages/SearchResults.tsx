@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 import { useCity } from '@/context/CityContext';
-import { searchProducts } from '@/lib/firebase';
+import { getProducts } from '@/lib/firebase';
 import ProductList from '@/components/ProductList';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -44,6 +44,10 @@ const SearchResults = () => {
     const fetchSearchResults = async () => {
       setLoading(true);
       try {
+        console.log('Fetching products with term:', term);
+        console.log('Category filter:', category);
+        console.log('City filter:', city);
+        
         // Create a properly typed filters object
         const filters: SearchFilters = {};
         
@@ -52,15 +56,32 @@ const SearchResults = () => {
           filters.category = category;
         }
         
-        // Search for products based on the search term and filters
-        const results = await searchProducts(term, filters);
+        // First, get all products matching the category filter
+        const allProducts = await getProducts(filters);
+        console.log('Products from getProducts:', allProducts);
+        
+        // Then manually filter by search term since Firebase doesn't support full text search
+        let filteredByTerm = allProducts;
+        if (term) {
+          const lowerTerm = term.toLowerCase();
+          filteredByTerm = allProducts.filter(product => 
+            product.name?.toLowerCase().includes(lowerTerm) || 
+            product.description?.toLowerCase().includes(lowerTerm) ||
+            product.model?.toLowerCase().includes(lowerTerm) ||
+            product.category?.toLowerCase().includes(lowerTerm)
+          );
+        }
+        
+        console.log('Products after term filtering:', filteredByTerm);
         
         // Filter by city if specified
-        const filteredResults = city 
-          ? results.filter(product => product.city === city) 
-          : results;
+        let finalResults = filteredByTerm;
+        if (city) {
+          finalResults = filteredByTerm.filter(product => product.city === city);
+        }
         
-        setProducts(filteredResults);
+        console.log('Final filtered products:', finalResults);
+        setProducts(finalResults);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
