@@ -30,11 +30,11 @@ const Header: React.FC = () => {
       <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center text-xl font-bold text-primary">
-          POISKZIP
+          Telepart
         </Link>
         
         {/* Search */}
-        <form onSubmit={handleSearch} className="flex-1 w-full">
+        {/* <form onSubmit={handleSearch} className="flex-1 w-full">
           <div className="relative">
             <Input
               type="search"
@@ -50,11 +50,11 @@ const Header: React.FC = () => {
               Найти
             </Button>
           </div>
-        </form>
+        </form> */}
         
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <CitySelector />
+          {/* <CitySelector /> */}
           
           {currentUser ? (
             <>
