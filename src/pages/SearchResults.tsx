@@ -19,6 +19,13 @@ const categories = [
   "Аксессуары"
 ];
 
+// Define an interface for our filters
+interface SearchFilters {
+  category?: string;
+  shopId?: string;
+  status?: string;
+}
+
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const term = searchParams.get('term') || '';
@@ -37,7 +44,8 @@ const SearchResults = () => {
     const fetchSearchResults = async () => {
       setLoading(true);
       try {
-        const filters = {};
+        // Create a properly typed filters object
+        const filters: SearchFilters = {};
         
         // Only add category filter if not "All categories"
         if (category !== 'Все категории') {
