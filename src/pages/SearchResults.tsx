@@ -74,29 +74,35 @@ const SearchResults = () => {
         
         console.log('Products after term filtering:', filteredByTerm);
         
-        // Sort and filter products:
-        // 1. Products from selected city first
-        // 2. Products from shops with delivery second
-        // 3. Other products last
-        let cityProducts: any[] = [];
-        let deliveryProducts: any[] = [];
-        let otherProducts: any[] = [];
+        // Apply city filter
+        let filteredByCity = [];
         
-        filteredByTerm.forEach(product => {
-          if (city && product.city === city) {
-            cityProducts.push(product);
-          } else if (product.hasDelivery) {
-            deliveryProducts.push(product);
-          } else {
-            otherProducts.push(product);
-          }
-        });
+        if (city) {
+          // First, get products from the selected city
+          const cityProducts = filteredByTerm.filter(product => product.city === city);
+          
+          // Then, get products with delivery option from other cities
+          const deliveryProducts = filteredByTerm.filter(
+            product => product.city !== city && product.hasDelivery === true
+          );
+          
+          // Combine them in the right order
+          filteredByCity = [...cityProducts, ...deliveryProducts];
+        } else {
+          // If no city filter, just sort by city and delivery status
+          const currentCityProducts = filteredByTerm.filter(product => product.city === selectedCity);
+          const deliveryProducts = filteredByTerm.filter(
+            product => product.city !== selectedCity && product.hasDelivery === true
+          );
+          const otherProducts = filteredByTerm.filter(
+            product => product.city !== selectedCity && !product.hasDelivery
+          );
+          
+          filteredByCity = [...currentCityProducts, ...deliveryProducts, ...otherProducts];
+        }
         
-        // Combine all products in the right order
-        const sortedProducts = [...cityProducts, ...deliveryProducts, ...otherProducts];
-        console.log('Final sorted and filtered products:', sortedProducts);
-        
-        setProducts(sortedProducts);
+        console.log('Final filtered products:', filteredByCity);
+        setProducts(filteredByCity);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
@@ -110,7 +116,7 @@ const SearchResults = () => {
     };
 
     fetchSearchResults();
-  }, [term, category, city, toast]);
+  }, [term, category, city, selectedCity, toast]);
   
   const handleSearch = () => {
     const params = new URLSearchParams();

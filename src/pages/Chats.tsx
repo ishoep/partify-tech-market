@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
 import { useAuth } from '@/context/AuthContext';
 import { getUserChats, getUserProfile, getProductById } from '@/lib/firebase';
-import { MessageCircle, ArrowLeft } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -68,69 +68,79 @@ const Chats: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Назад
-        </Button>
-      </div>
-      
-      <div className="mb-6 text-left">
-        <h1 className="text-2xl font-bold">Чаты</h1>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-8">
-          <p>Загрузка...</p>
-        </div>
-      ) : chats.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-5xl mb-4">💬</div>
-          <h3 className="text-xl font-medium">У вас пока нет чатов</h3>
-          <p className="text-muted-foreground mb-6">
-            Начните общение с продавцом, чтобы появился чат
-          </p>
-          <Button onClick={() => navigate('/')}>
-            Перейти к поиску
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        {/* Chats header */}
+        <div className="bg-white dark:bg-gray-900 border-b p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-bold">Чаты</h1>
+          </div>
+          <Button variant="ghost" size="icon">
+            <Search className="h-5 w-5" />
           </Button>
         </div>
-      ) : (
-        <div className="space-y-3 max-w-2xl mx-auto">
-          {chats.map((chat) => (
-            <Link to={`/chats/${chat.id}`} key={chat.id}>
-              <Card className="glass-card border-0 hover:bg-secondary/50 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center">
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">
-                        {chat.partner.displayName}
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({chat.isOwner ? 'покупатель' : 'продавец'})
+        
+        {/* Chat list */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-8">
+              <p>Загрузка...</p>
+            </div>
+          ) : chats.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4">💬</div>
+              <h3 className="text-xl font-medium">У вас пока нет чатов</h3>
+              <p className="text-muted-foreground mb-6">
+                Начните общение с продавцом, чтобы появился чат
+              </p>
+              <Button onClick={() => navigate('/')}>
+                Перейти к поиску
+              </Button>
+            </div>
+          ) : (
+            <div>
+              {chats.map((chat) => (
+                <Link to={`/chats/${chat.id}`} key={chat.id} className="block">
+                  <div className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={chat.partner.photoURL} alt={chat.partner.displayName} />
+                      <AvatarFallback>
+                        {chat.partner.displayName ? chat.partner.displayName.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between">
+                        <p className="font-medium">
+                          {chat.partner.displayName || 'Пользователь'}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(chat.lastMessageTime), { 
+                            addSuffix: false,
+                            locale: ru 
+                          })}
                         </span>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Товар: {chat.product.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(chat.lastMessageTime), { 
-                          addSuffix: true,
-                          locale: ru 
-                        })}
+                      
+                      <div className="flex items-center">
+                        <p className="text-sm text-muted-foreground truncate mr-2">
+                          {chat.lastMessage || `Обсуждение: ${chat.product.name || 'товара'}`}
+                        </p>
                       </div>
                     </div>
-                    <MessageCircle className="h-5 w-5 text-muted-foreground" />
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </MainLayout>
   );
 };

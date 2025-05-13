@@ -14,6 +14,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Shop from "./pages/Shop";
+import ShopPage from "./pages/ShopPage";
+import UserProfile from "./pages/UserProfile";
 import Warehouse from "./pages/Warehouse";
 import Workshop from "./pages/Workshop";
 import ProductDetail from "./pages/ProductDetail";
@@ -39,6 +41,8 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/products/:productId" element={<ProductDetail />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/user/:userId" element={<UserProfile />} />
+              <Route path="/shop/:shopId" element={<ShopPage />} />
               
               {/* Protected Routes */}
               <Route path="/profile" element={
