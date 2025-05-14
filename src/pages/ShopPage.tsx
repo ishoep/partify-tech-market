@@ -45,6 +45,7 @@ const ShopPage = () => {
         // Get shop data
         const shopData = await getShopByUserId(shopId);
         if (shopData) {
+          // Explicitly cast shopData to Shop type to ensure it has all required properties
           setShop(shopData as Shop);
           
           // Get shop products (exclude warehouse items)
@@ -55,7 +56,7 @@ const ShopPage = () => {
           setProducts(shopProducts);
           
           // Get shop owner info
-          if (shopData && shopData.ownerId) {
+          if (shopData.ownerId) {
             const ownerData = await getUserProfile(shopData.ownerId);
             setOwner(ownerData);
           }
