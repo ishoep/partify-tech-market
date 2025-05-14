@@ -14,13 +14,15 @@ interface ProductListProps {
   onUpdate: () => void;
   showDeliveryBadge?: boolean;
   showActions?: boolean;
+  warehouseView?: boolean;  // Add this prop to the interface
 }
 
 const ProductList: React.FC<ProductListProps> = ({ 
   products, 
   onUpdate, 
   showDeliveryBadge = false,
-  showActions = true 
+  showActions = true,
+  warehouseView = false  // Set default value to false
 }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
