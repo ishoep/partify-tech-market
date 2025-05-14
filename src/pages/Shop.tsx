@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,12 @@ import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
 import { useCity } from '@/context/CityContext';
 import { createShop, getShopByUserId, updateShop, getProducts } from '@/lib/firebase';
+import { Trash2, Plus } from 'lucide-react';
+
+interface ShopAddress {
+  city: string;
+  address: string;
+}
 
 interface Shop {
   id: string;
@@ -31,8 +36,7 @@ interface Shop {
   telegram?: string;
   website?: string;
   description?: string;
-  address?: string;
-  city?: string;
+  addresses?: ShopAddress[];  // Changed from single address to array of addresses
   hasDelivery?: boolean;
   [key: string]: any; // Allow additional properties
 }
@@ -54,8 +58,7 @@ const Shop: React.FC = () => {
   const [telegram, setTelegram] = useState('');
   const [website, setWebsite] = useState('');
   const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState(cities[0]);
+  const [addresses, setAddresses] = useState<ShopAddress[]>([{ city: cities[0], address: '' }]);
   const [hasDelivery, setHasDelivery] = useState(false);
 
   useEffect(() => {
@@ -76,8 +79,21 @@ const Shop: React.FC = () => {
           setTelegram(typedShopData.telegram || '');
           setWebsite(typedShopData.website || '');
           setDescription(typedShopData.description || '');
-          setAddress(typedShopData.address || '');
-          setCity(typedShopData.city || cities[0]);
+          
+          // Handle addresses - migration from old format to new format if needed
+          if (typedShopData.addresses && typedShopData.addresses.length > 0) {
+            setAddresses(typedShopData.addresses);
+          } else if (typedShopData.address && typedShopData.city) {
+            // If we have old format data, convert it to new format
+            setAddresses([{ 
+              city: typedShopData.city || cities[0], 
+              address: typedShopData.address || '' 
+            }]);
+          } else {
+            // Default empty address
+            setAddresses([{ city: cities[0], address: '' }]);
+          }
+          
           setHasDelivery(typedShopData.hasDelivery || false);
           
           // Fetch shop products
@@ -94,14 +110,46 @@ const Shop: React.FC = () => {
     fetchShopData();
   }, [currentUser, cities]);
 
-  const handleCreateShop = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!name || !phone || !email || !address || !city) {
+  const addAddress = () => {
+    setAddresses([...addresses, { city: cities[0], address: '' }]);
+  };
+
+  const removeAddress = (index: number) => {
+    if (addresses.length === 1) {
+      // Keep at least one address
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес, Город.",
+        description: "Необходимо указать хотя бы один адрес.",
+      });
+      return;
+    }
+    
+    const newAddresses = [...addresses];
+    newAddresses.splice(index, 1);
+    setAddresses(newAddresses);
+  };
+
+  const updateAddressCity = (index: number, city: string) => {
+    const newAddresses = [...addresses];
+    newAddresses[index].city = city;
+    setAddresses(newAddresses);
+  };
+
+  const updateAddressStreet = (index: number, address: string) => {
+    const newAddresses = [...addresses];
+    newAddresses[index].address = address;
+    setAddresses(newAddresses);
+  };
+
+  const handleCreateShop = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name || !phone || !email || addresses.some(addr => !addr.address)) {
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: "Заполните обязательные поля: Название, Телефон, Email и Адреса.",
       });
       return;
     }
@@ -116,8 +164,7 @@ const Shop: React.FC = () => {
         telegram,
         website,
         description,
-        address,
-        city,
+        addresses,
         hasDelivery,
       };
       
@@ -143,11 +190,11 @@ const Shop: React.FC = () => {
   const handleUpdateShop = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !phone || !email || !address || !city) {
+    if (!name || !phone || !email || addresses.some(addr => !addr.address)) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните обязательные поля: Название, Телефон, Email, Адрес, Город.",
+        description: "Заполните обязательные поля: Название, Телефон, Email и Адреса.",
       });
       return;
     }
@@ -162,8 +209,7 @@ const Shop: React.FC = () => {
         telegram,
         website,
         description,
-        address,
-        city,
+        addresses,
         hasDelivery,
       };
       
@@ -269,33 +315,65 @@ const Shop: React.FC = () => {
                       placeholder="https://example.com"
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="city" className="text-left block">Город*</Label>
-                    <Select
-                      value={city}
-                      onValueChange={setCity}
+                    <Label className="text-left block mb-2">Адреса магазинов*</Label>
+                    {addresses.map((address, index) => (
+                      <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">Адрес #{index + 1}</span>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeAddress(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor={`city-${index}`}>Город*</Label>
+                          <Select
+                            value={address.city}
+                            onValueChange={(value) => updateAddressCity(index, value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Выберите город" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {cities.map((city) => (
+                                <SelectItem key={`${city}-${index}`} value={city}>
+                                  {city}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor={`address-${index}`}>Адрес*</Label>
+                          <Input
+                            id={`address-${index}`}
+                            value={address.address}
+                            onChange={(e) => updateAddressStreet(index, e.target.value)}
+                            placeholder="ул. Примерная, д. 1"
+                            required
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={addAddress}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Выберите город" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cities.map((city) => (
-                          <SelectItem key={city} value={city}>
-                            {city}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Plus className="h-4 w-4 mr-2" /> Добавить адрес
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="text-left block">Адрес*</Label>
-                    <Input
-                      id="address"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      required
-                    />
-                  </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="description" className="text-left block">Описание</Label>
                     <Textarea
@@ -399,38 +477,68 @@ const Shop: React.FC = () => {
                   
                   <TabsContent value="address" className="pt-4">
                     <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city" className="text-left block">Город*</Label>
-                        <Select
-                          value={city}
-                          onValueChange={setCity}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Выберите город" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {cities.map((cityName) => (
-                              <SelectItem key={cityName} value={cityName}>
-                                {cityName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="address" className="text-left block">Адрес*</Label>
-                        <Input
-                          id="address"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          required
-                        />
-                      </div>
+                      <Label className="text-left block mb-2">Адреса магазинов*</Label>
+                      {addresses.map((address, index) => (
+                        <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Адрес #{index + 1}</span>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeAddress(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor={`city-${index}`}>Город*</Label>
+                            <Select
+                              value={address.city}
+                              onValueChange={(value) => updateAddressCity(index, value)}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Выберите город" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {cities.map((city) => (
+                                  <SelectItem key={`${city}-${index}`} value={city}>
+                                    {city}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor={`address-${index}`}>Адрес*</Label>
+                            <Input
+                              id={`address-${index}`}
+                              value={address.address}
+                              onChange={(e) => updateAddressStreet(index, e.target.value)}
+                              placeholder="ул. Примерная, д. 1"
+                              required
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={addAddress}
+                      >
+                        <Plus className="h-4 w-4 mr-2" /> Добавить адрес
+                      </Button>
+                      
                       <Button
                         onClick={handleUpdateShop}
                         disabled={loading}
+                        className="w-full"
                       >
-                        {loading ? "Обновление..." : "Обновить адрес"}
+                        {loading ? "Обновление..." : "Обновить адреса"}
                       </Button>
                     </div>
                   </TabsContent>

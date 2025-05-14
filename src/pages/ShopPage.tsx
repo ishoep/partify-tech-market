@@ -13,16 +13,23 @@ import { getShopByUserId, getProducts, getUserProfile, createChat } from '@/lib/
 import { useAuth } from '@/context/AuthContext';
 import { ArrowLeft, MessageCircle, Phone, Mail, MapPin, Truck } from 'lucide-react';
 
+interface ShopAddress {
+  city: string;
+  address: string;
+}
+
 interface Shop {
   id: string;
   ownerId?: string;
   name?: string;
   description?: string;
-  city?: string;
-  address?: string;
+  addresses?: ShopAddress[];
   phone?: string;
   email?: string;
   hasDelivery?: boolean;
+  // Legacy fields
+  city?: string;
+  address?: string;
 }
 
 const ShopPage = () => {
@@ -101,6 +108,20 @@ const ShopPage = () => {
       });
     }
   };
+
+  // Helper function to get all shop addresses, handling old and new formats
+  const getShopAddresses = (): ShopAddress[] => {
+    if (!shop) return [];
+    
+    if (shop.addresses && shop.addresses.length > 0) {
+      return shop.addresses;
+    } else if (shop.city && shop.address) {
+      // Legacy format
+      return [{ city: shop.city, address: shop.address }];
+    }
+    
+    return [];
+  };
   
   if (loading) {
     return (
@@ -122,6 +143,9 @@ const ShopPage = () => {
       </MainLayout>
     );
   }
+  
+  const addresses = getShopAddresses();
+  const primaryCity = addresses.length > 0 ? addresses[0].city : 'Не указан';
   
   return (
     <MainLayout>
@@ -146,10 +170,13 @@ const ShopPage = () => {
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">{shop?.name}</h1>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {shop?.city && (
+                  {addresses.length > 0 && (
                     <Badge variant="outline" className="flex items-center">
                       <MapPin className="h-3 w-3 mr-1" />
-                      {shop.city}
+                      {addresses.length > 1 
+                        ? `${addresses.length} филиалов в ${addresses.map(a => a.city).filter((v, i, a) => a.indexOf(v) === i).join(', ')}` 
+                        : primaryCity
+                      }
                     </Badge>
                   )}
                   
@@ -195,10 +222,20 @@ const ShopPage = () => {
                     </div>
                   )}
                   
-                  {shop?.address && (
-                    <div className="flex items-start">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                      <span>{shop?.city}, {shop.address}</span>
+                  {addresses.length > 0 && (
+                    <div>
+                      <div className="flex items-start mb-2">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
+                        <span className="font-medium">Адреса магазинов:</span>
+                      </div>
+                      <div className="space-y-2 ml-6">
+                        {addresses.map((addr, index) => (
+                          <div key={index} className="text-sm">
+                            <div><span className="font-medium">{addr.city}</span>:</div>
+                            <div>{addr.address}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -247,6 +284,7 @@ const ShopPage = () => {
                   <ProductList 
                     products={products} 
                     onUpdate={() => {}} 
+                    showDeliveryBadge={true}
                   />
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">

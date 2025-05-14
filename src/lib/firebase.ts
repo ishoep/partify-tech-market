@@ -1,3 +1,4 @@
+
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, DocumentData, QuerySnapshot } from "firebase/firestore";
@@ -103,16 +104,27 @@ export const createProduct = async (productData: any) => {
   
   const articleNumber = 10000 + querySnapshot.size;
 
-  // Get the shop data to include city and hasDelivery
+  // Get the shop data to include city, addresses and hasDelivery
   let shopData = null;
   if (productData.shopId) {
     shopData = await getShopByUserId(productData.shopId);
   }
   
+  // Use the primary address city if available
+  const primaryCity = shopData?.addresses && shopData.addresses.length > 0
+    ? shopData.addresses[0].city
+    : shopData?.city || null;
+    
   return addDoc(productsRef, {
     ...productData,
     articleNumber,
-    city: shopData?.city || null,
+    city: primaryCity,
+    shop: {
+      id: shopData?.id,
+      name: shopData?.name,
+      addresses: shopData?.addresses || [],
+      hasDelivery: shopData?.hasDelivery || false,
+    },
     hasDelivery: shopData?.hasDelivery || false,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -193,6 +205,28 @@ export const getProductById = async (productId: string) => {
 
 export const updateProduct = async (productId: string, productData: any) => {
   const productRef = doc(db, "products", productId);
+  
+  // If shopId is included, update the shop information
+  if (productData.shopId) {
+    const shopData = await getShopByUserId(productData.shopId);
+    
+    if (shopData) {
+      // Use the primary address city if available
+      const primaryCity = shopData.addresses && shopData.addresses.length > 0
+        ? shopData.addresses[0].city
+        : shopData.city || null;
+        
+      productData.city = primaryCity;
+      productData.shop = {
+        id: shopData.id,
+        name: shopData.name,
+        addresses: shopData.addresses || [],
+        hasDelivery: shopData.hasDelivery || false,
+      };
+      productData.hasDelivery = shopData.hasDelivery || false;
+    }
+  }
+  
   return updateDoc(productRef, {
     ...productData,
     updatedAt: new Date(),

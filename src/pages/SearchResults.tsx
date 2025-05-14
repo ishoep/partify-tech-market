@@ -5,7 +5,10 @@ import MainLayout from '@/components/MainLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, Truck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useCity } from '@/context/CityContext';
 import { getProducts } from '@/lib/firebase';
 import ProductList from '@/components/ProductList';
@@ -31,6 +34,7 @@ const SearchResults = () => {
   const term = searchParams.get('term') || '';
   const category = searchParams.get('category') || 'Все категории';
   const city = searchParams.get('city') || '';
+  const deliveryFilter = searchParams.get('delivery') || 'all';
   
   const { selectedCity, cities, setSelectedCity } = useCity();
   const { toast } = useToast();
@@ -39,6 +43,8 @@ const SearchResults = () => {
   const [selectedCategory, setSelectedCategory] = useState(category);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [onlyWithDelivery, setOnlyWithDelivery] = useState(deliveryFilter === 'delivery');
+  const [onlyWithoutDelivery, setOnlyWithoutDelivery] = useState(deliveryFilter === 'nodelivery');
   
   useEffect(() => {
     const fetchSearchResults = async () => {
@@ -47,6 +53,7 @@ const SearchResults = () => {
         console.log('Fetching products with term:', term);
         console.log('Category filter:', category);
         console.log('City filter:', city || selectedCity);
+        console.log('Delivery filter:', deliveryFilter);
         
         // Create a properly typed filters object
         const filters: SearchFilters = {};
@@ -74,39 +81,47 @@ const SearchResults = () => {
         
         console.log('Products after term filtering:', filteredByTerm);
         
-        // Apply city filter
+        // Apply city filter - now considering multiple shop addresses
         const cityToFilter = city || selectedCity;
+        let cityFilteredProducts = filteredByTerm;
         
         if (cityToFilter) {
-          // First, get products from the selected city
-          const cityProducts = filteredByTerm.filter(product => product.city === cityToFilter);
+          // Get products directly from the selected city (shop has an address in this city)
+          cityFilteredProducts = filteredByTerm.filter(product => {
+            // Check if product.shop exists and has addresses array
+            if (product.shop && product.shop.addresses && Array.isArray(product.shop.addresses)) {
+              return product.shop.addresses.some(addr => addr.city === cityToFilter);
+            }
+            
+            // Fallback to simple city check for backward compatibility
+            return product.city === cityToFilter;
+          });
           
-          // Then, get products with delivery option from other cities
-          const deliveryProducts = filteredByTerm.filter(
-            product => product.city !== cityToFilter && product.hasDelivery === true
-          );
-          
-          // If we have products from the selected city or with delivery, combine them
-          if (cityProducts.length > 0 || deliveryProducts.length > 0) {
-            setProducts([...cityProducts, ...deliveryProducts]);
-          } else {
-            // If no products match the city filter, show empty results
-            setProducts([]);
+          // Add products with delivery from other cities if not filtering to only show products without delivery
+          if (!onlyWithoutDelivery) {
+            const deliveryProducts = filteredByTerm.filter(
+              product => {
+                // Check if product is not already included and has delivery
+                const isFromDifferentCity = !(product.shop?.addresses?.some(addr => addr.city === cityToFilter) || product.city === cityToFilter);
+                return isFromDifferentCity && product.hasDelivery === true;
+              }
+            );
+            
+            cityFilteredProducts = [...cityFilteredProducts, ...deliveryProducts];
           }
-        } else {
-          // If no city filter, just sort by city and delivery status
-          const currentCityProducts = filteredByTerm.filter(product => product.city === selectedCity);
-          const deliveryProducts = filteredByTerm.filter(
-            product => product.city !== selectedCity && product.hasDelivery === true
-          );
-          const otherProducts = filteredByTerm.filter(
-            product => product.city !== selectedCity && !product.hasDelivery
-          );
-          
-          setProducts([...currentCityProducts, ...deliveryProducts, ...otherProducts]);
         }
         
-        console.log('Final filtered products:', products);
+        // Apply delivery filter
+        let finalProducts = cityFilteredProducts;
+        
+        if (onlyWithDelivery) {
+          finalProducts = cityFilteredProducts.filter(product => product.hasDelivery === true);
+        } else if (onlyWithoutDelivery) {
+          finalProducts = cityFilteredProducts.filter(product => product.hasDelivery !== true);
+        }
+        
+        setProducts(finalProducts);
+        console.log('Final filtered products:', finalProducts);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
@@ -120,14 +135,40 @@ const SearchResults = () => {
     };
 
     fetchSearchResults();
-  }, [term, category, city, selectedCity, toast]);
+  }, [term, category, city, selectedCity, deliveryFilter, onlyWithDelivery, onlyWithoutDelivery, toast]);
   
   const handleSearch = () => {
     const params = new URLSearchParams();
     params.set('term', searchTerm);
     params.set('category', selectedCategory);
     params.set('city', selectedCity);
+    
+    // Set delivery filter
+    if (onlyWithDelivery) {
+      params.set('delivery', 'delivery');
+    } else if (onlyWithoutDelivery) {
+      params.set('delivery', 'nodelivery');
+    } else {
+      params.set('delivery', 'all');
+    }
+    
     setSearchParams(params);
+  };
+  
+  const handleDeliveryFilterChange = (type: 'delivery' | 'nodelivery') => {
+    if (type === 'delivery') {
+      const newValue = !onlyWithDelivery;
+      setOnlyWithDelivery(newValue);
+      if (newValue) {
+        setOnlyWithoutDelivery(false);
+      }
+    } else {
+      const newValue = !onlyWithoutDelivery;
+      setOnlyWithoutDelivery(newValue);
+      if (newValue) {
+        setOnlyWithDelivery(false);
+      }
+    }
   };
   
   return (
@@ -188,12 +229,47 @@ const SearchResults = () => {
           </div>
         </div>
         
+        {/* Additional filters */}
+        <div className="container pt-4 pb-2">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="delivery-filter" 
+                checked={onlyWithDelivery} 
+                onCheckedChange={() => handleDeliveryFilterChange('delivery')}
+              />
+              <Label htmlFor="delivery-filter" className="flex items-center">
+                <Truck className="w-4 h-4 mr-1" /> Только с доставкой
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="nodelivery-filter" 
+                checked={onlyWithoutDelivery} 
+                onCheckedChange={() => handleDeliveryFilterChange('nodelivery')}
+              />
+              <Label htmlFor="nodelivery-filter">Без доставки</Label>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSearch}
+            >
+              Применить
+            </Button>
+          </div>
+        </div>
+        
         {/* Search results */}
         <div className="container py-4">
           <h2 className="text-xl font-medium mb-4">
             {term ? `Результаты поиска: ${term}` : 'Все товары'}
             {category !== 'Все категории' ? ` в категории ${category}` : ''}
             {(city || selectedCity) ? ` в городе ${city || selectedCity}` : ''}
+            {onlyWithDelivery ? ' (только с доставкой)' : ''}
+            {onlyWithoutDelivery ? ' (только без доставки)' : ''}
           </h2>
           
           {loading ? (
@@ -204,6 +280,7 @@ const SearchResults = () => {
             <ProductList 
               products={products} 
               onUpdate={() => handleSearch()}
+              showDeliveryBadge={true}
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
