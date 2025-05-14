@@ -13,13 +13,25 @@ import { getShopByUserId, getProducts, getUserProfile, createChat } from '@/lib/
 import { useAuth } from '@/context/AuthContext';
 import { ArrowLeft, MessageCircle, Phone, Mail, MapPin, Truck } from 'lucide-react';
 
+interface Shop {
+  id: string;
+  ownerId?: string;
+  name?: string;
+  description?: string;
+  city?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  hasDelivery?: boolean;
+}
+
 const ShopPage = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { toast } = useToast();
   
-  const [shop, setShop] = useState<any>(null);
+  const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState([]);
   const [owner, setOwner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +45,7 @@ const ShopPage = () => {
         // Get shop data
         const shopData = await getShopByUserId(shopId);
         if (shopData) {
-          setShop(shopData);
+          setShop(shopData as Shop);
           
           // Get shop products (exclude warehouse items)
           const shopProducts = await getProducts({ 
@@ -126,20 +138,20 @@ const ShopPage = () => {
           <div className="bg-primary/10 p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarFallback>{shop.name ? shop.name.charAt(0).toUpperCase() : 'S'}</AvatarFallback>
+                <AvatarFallback>{shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'}</AvatarFallback>
               </Avatar>
               
               <div className="flex-1">
-                <h1 className="text-2xl font-bold">{shop.name}</h1>
+                <h1 className="text-2xl font-bold">{shop?.name}</h1>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {shop.city && (
+                  {shop?.city && (
                     <Badge variant="outline" className="flex items-center">
                       <MapPin className="h-3 w-3 mr-1" />
                       {shop.city}
                     </Badge>
                   )}
                   
-                  {shop.hasDelivery && (
+                  {shop?.hasDelivery && (
                     <Badge variant="outline" className="flex items-center">
                       <Truck className="h-3 w-3 mr-1" />
                       Доставка
@@ -148,7 +160,7 @@ const ShopPage = () => {
                 </div>
               </div>
               
-              {currentUser && shop.ownerId !== currentUser.uid && (
+              {currentUser && shop?.ownerId !== currentUser.uid && (
                 <Button onClick={handleStartChat}>
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Написать
@@ -167,24 +179,24 @@ const ShopPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {shop.phone && (
+                  {shop?.phone && (
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span>{shop.phone}</span>
                     </div>
                   )}
                   
-                  {shop.email && (
+                  {shop?.email && (
                     <div className="flex items-center">
                       <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span>{shop.email}</span>
                     </div>
                   )}
                   
-                  {shop.address && (
+                  {shop?.address && (
                     <div className="flex items-start">
                       <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                      <span>{shop.city}, {shop.address}</span>
+                      <span>{shop?.city}, {shop.address}</span>
                     </div>
                   )}
                 </div>
@@ -209,7 +221,7 @@ const ShopPage = () => {
               </CardContent>
             </Card>
             
-            {shop.description && (
+            {shop?.description && (
               <Card className="mt-4">
                 <CardHeader>
                   <CardTitle>О магазине</CardTitle>
