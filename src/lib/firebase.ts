@@ -1,8 +1,31 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, DocumentData, QuerySnapshot } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
+
+// Define interfaces for better typing
+interface ShopAddress {
+  city: string;
+  address: string;
+}
+
+interface Shop {
+  id: string;
+  name?: string;
+  ownerId?: string;
+  phone?: string;
+  email?: string;
+  telegram?: string;
+  website?: string;
+  description?: string;
+  addresses?: ShopAddress[];
+  city?: string;
+  address?: string;
+  hasDelivery?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  [key: string]: any; // Allow additional properties
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyBvysiR8_upx3QwgOkDIxF79OxknEi10f8",
@@ -81,7 +104,7 @@ export const getShopByUserId = async (userId: string) => {
   const shopSnap = await getDoc(shopRef);
   
   if (shopSnap.exists()) {
-    return { id: shopSnap.id, ...shopSnap.data() };
+    return { id: shopSnap.id, ...shopSnap.data() } as Shop;
   } else {
     return null;
   }
@@ -105,7 +128,7 @@ export const createProduct = async (productData: any) => {
   const articleNumber = 10000 + querySnapshot.size;
 
   // Get the shop data to include city, addresses and hasDelivery
-  let shopData = null;
+  let shopData: Shop | null = null;
   if (productData.shopId) {
     shopData = await getShopByUserId(productData.shopId);
   }

@@ -8,18 +8,23 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { currentUser, loading } = useAuth();
-  const location = useLocation();
+  try {
+    const { currentUser, loading } = useAuth();
+    const location = useLocation();
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    if (loading) {
+      return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    }
+
+    if (!currentUser) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return <>{children}</>;
+  } catch (error) {
+    console.error("Error in ProtectedRoute:", error);
+    return <Navigate to="/login" replace />;
   }
-
-  if (!currentUser) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
 };
 
 export default ProtectedRoute;

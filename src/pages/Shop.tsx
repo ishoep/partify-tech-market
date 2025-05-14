@@ -21,7 +21,7 @@ import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
 import { useCity } from '@/context/CityContext';
 import { createShop, getShopByUserId, updateShop, getProducts } from '@/lib/firebase';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Loader } from 'lucide-react';
 
 interface ShopAddress {
   city: string;
@@ -46,6 +46,7 @@ const Shop: React.FC = () => {
   const { cities } = useCity();
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const { toast } = useToast();
@@ -104,6 +105,7 @@ const Shop: React.FC = () => {
         console.error("Error fetching shop data:", error);
       } finally {
         setLoading(false);
+        setDataLoaded(true);
       }
     };
 
@@ -261,7 +263,11 @@ const Shop: React.FC = () => {
             </Button>
           </div>
           
-          {!shop ? (
+          {!dataLoaded ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : !shop ? (
             <Card className="glass-card border-0">
               <CardHeader>
                 <CardTitle className="text-2xl text-left">Создание магазина</CardTitle>

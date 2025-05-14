@@ -1,5 +1,6 @@
+
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { auth, getUserProfile } from "@/lib/firebase";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -103,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     try {
-      await updateProfile(currentUser, data);
+      await firebaseUpdateProfile(currentUser, data);
       setCurrentUser({ ...currentUser, ...data });
       toast({
         title: "Success",
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
