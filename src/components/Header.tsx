@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/context/AuthContext';
 import { useCity } from '@/context/CityContext';
 import CitySelector from './CitySelector';
-import { MessageCircle, Heart, User } from 'lucide-react';
+import { MessageCircle, Heart } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { currentUser } = useAuth();
@@ -34,7 +34,7 @@ const Header: React.FC = () => {
         </Link>
         
         {/* Search */}
-        {/* <form onSubmit={handleSearch} className="flex-1 w-full">
+        <form onSubmit={handleSearch} className="flex-1 w-full">
           <div className="relative">
             <Input
               type="search"
@@ -50,19 +50,20 @@ const Header: React.FC = () => {
               Найти
             </Button>
           </div>
-        </form> */}
+        </form>
         
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* <CitySelector /> */}
+          <CitySelector />
           
           {currentUser ? (
-            <>
-              <Button variant="ghost" size="icon" onClick={() => navigate('/chats')}>
-                <MessageCircle className="h-5 w-5" />
-              </Button>
+            <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => navigate('/favorites')}>
                 <Heart className="h-5 w-5" />
+              </Button>
+              
+              <Button variant="ghost" size="icon" onClick={() => navigate('/chats')}>
+                <MessageCircle className="h-5 w-5" />
               </Button>
               
               <Button 
@@ -77,7 +78,7 @@ const Header: React.FC = () => {
                 </Avatar>
                 <span>Профиль</span>
               </Button>
-            </>
+            </div>
           ) : (
             <>
               <Button variant="outline" onClick={() => navigate('/login')}>

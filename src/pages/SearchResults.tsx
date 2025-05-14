@@ -46,7 +46,7 @@ const SearchResults = () => {
       try {
         console.log('Fetching products with term:', term);
         console.log('Category filter:', category);
-        console.log('City filter:', city);
+        console.log('City filter:', city || selectedCity);
         
         // Create a properly typed filters object
         const filters: SearchFilters = {};
@@ -75,19 +75,24 @@ const SearchResults = () => {
         console.log('Products after term filtering:', filteredByTerm);
         
         // Apply city filter
-        let filteredByCity = [];
+        const cityToFilter = city || selectedCity;
         
-        if (city) {
+        if (cityToFilter) {
           // First, get products from the selected city
-          const cityProducts = filteredByTerm.filter(product => product.city === city);
+          const cityProducts = filteredByTerm.filter(product => product.city === cityToFilter);
           
           // Then, get products with delivery option from other cities
           const deliveryProducts = filteredByTerm.filter(
-            product => product.city !== city && product.hasDelivery === true
+            product => product.city !== cityToFilter && product.hasDelivery === true
           );
           
-          // Combine them in the right order
-          filteredByCity = [...cityProducts, ...deliveryProducts];
+          // If we have products from the selected city or with delivery, combine them
+          if (cityProducts.length > 0 || deliveryProducts.length > 0) {
+            setProducts([...cityProducts, ...deliveryProducts]);
+          } else {
+            // If no products match the city filter, show empty results
+            setProducts([]);
+          }
         } else {
           // If no city filter, just sort by city and delivery status
           const currentCityProducts = filteredByTerm.filter(product => product.city === selectedCity);
@@ -98,11 +103,10 @@ const SearchResults = () => {
             product => product.city !== selectedCity && !product.hasDelivery
           );
           
-          filteredByCity = [...currentCityProducts, ...deliveryProducts, ...otherProducts];
+          setProducts([...currentCityProducts, ...deliveryProducts, ...otherProducts]);
         }
         
-        console.log('Final filtered products:', filteredByCity);
-        setProducts(filteredByCity);
+        console.log('Final filtered products:', products);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
@@ -189,7 +193,7 @@ const SearchResults = () => {
           <h2 className="text-xl font-medium mb-4">
             {term ? `Результаты поиска: ${term}` : 'Все товары'}
             {category !== 'Все категории' ? ` в категории ${category}` : ''}
-            {city ? ` в городе ${city}` : ''}
+            {(city || selectedCity) ? ` в городе ${city || selectedCity}` : ''}
           </h2>
           
           {loading ? (

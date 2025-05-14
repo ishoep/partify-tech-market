@@ -43,7 +43,7 @@ const ShopPage = () => {
           setProducts(shopProducts);
           
           // Get shop owner info
-          if (shopData.ownerId) {
+          if (shopData && shopData.ownerId) {
             const ownerData = await getUserProfile(shopData.ownerId);
             setOwner(ownerData);
           }
@@ -230,7 +230,10 @@ const ShopPage = () => {
               
               <TabsContent value="products" className="pt-4">
                 {products.length > 0 ? (
-                  <ProductList products={products} />
+                  <ProductList 
+                    products={products} 
+                    onUpdate={() => {}} 
+                  />
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>В магазине пока нет товаров</p>
