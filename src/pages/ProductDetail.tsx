@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ interface Product {
   category?: string;
   model?: string;
   imageUrl?: string;
-  shopId?: string; // Добавили shopId как необязательное свойство
+  shopId?: string;
   shopName?: string;
   hasDelivery?: boolean;
 }
@@ -249,7 +248,7 @@ const ProductDetail: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   className="flex items-center"
-                  onClick={() => navigate(`/shops/${product?.shopId}`)}
+                  onClick={() => navigate(`/shop/${product?.shopId}`)}
                 >
                   <ShoppingBag className="h-4 w-4 mr-1" />
                   В магазин

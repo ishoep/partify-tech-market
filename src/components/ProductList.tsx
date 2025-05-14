@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,12 +28,12 @@ const ProductList: React.FC<ProductListProps> = ({
   const { toast } = useToast();
   
   const handleViewProduct = (productId: string) => {
-    navigate(`/product/${productId}`);
+    navigate(`/products/${productId}`);
   };
   
   const handleEditProduct = (productId: string) => {
     // Navigate to edit product page
-    navigate(`/product/edit/${productId}`);
+    navigate(`/products/edit/${productId}`);
   };
   
   const handleToggleFavorite = async (product: any) => {
