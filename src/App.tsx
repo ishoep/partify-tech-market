@@ -24,6 +24,7 @@ import Chats from "./pages/Chats";
 import ChatDetail from "./pages/ChatDetail";
 import NotFound from "./pages/NotFound";
 import SearchResults from "./pages/SearchResults";
+import Payments from "./pages/Payments";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,11 @@ const App = () => (
               <Route path="/chats/:chatId" element={
                 <ProtectedRoute>
                   <ChatDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/payments" element={
+                <ProtectedRoute>
+                  <Payments />
                 </ProtectedRoute>
               } />
               
