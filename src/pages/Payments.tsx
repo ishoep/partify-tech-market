@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { PlusCircle, MinusCircle, Filter, Trash2, Info } from 'lucide-react';
 import { addDoc, collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet';
+import { Progress } from '@/components/ui/progress'; 
 
 interface Transaction {
   id: string;
@@ -31,11 +33,13 @@ interface Transaction {
 const Payments = () => {
   const { currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<'all' | 'card' | 'cash'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const isMobile = useIsMobile();
   
   // Form state
   const [method, setMethod] = useState<'card' | 'cash'>('card');
@@ -139,6 +143,8 @@ const Payments = () => {
     }
     
     try {
+      setIsSaving(true);
+      
       const parsedAmount = parseFloat(amount);
       
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -188,6 +194,8 @@ const Payments = () => {
         description: "Не удалось добавить транзакцию",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -237,35 +245,29 @@ const Payments = () => {
 
   return (
     <MainLayout showSidebar>
-      <div className="container max-w-5xl mx-auto py-6">
-        <h1 className="text-3xl font-bold mb-6">Платежи</h1>
+      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Платежи</h1>
         
         {/* Balance and Totals */}
-        <div className="grid grid-cols-4 gap-4 mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-          <div className="col-span-4 sm:col-span-1">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6 bg-gray-50 dark:bg-gray-800 p-3 sm:p-4 rounded-lg">
+          <div className="col-span-3 sm:col-span-1">
             <p className="text-sm text-gray-500 dark:text-gray-400">Баланс</p>
-            <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-base sm:text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {balance.toFixed(2)} UZS
             </p>
           </div>
-          <div className="col-span-2 sm:col-span-1">
+          <div className="col-span-3/2 sm:col-span-1">
             <p className="text-sm text-gray-500 dark:text-gray-400">Приход</p>
-            <p className="text-xl font-bold text-green-600">{income.toFixed(2)} UZS</p>
+            <p className="text-base sm:text-xl font-bold text-green-600">{income.toFixed(2)} UZS</p>
           </div>
-          <div className="col-span-2 sm:col-span-1">
+          <div className="col-span-3/2 sm:col-span-1">
             <p className="text-sm text-gray-500 dark:text-gray-400">Расход</p>
-            <p className="text-xl font-bold text-red-600">{expense.toFixed(2)} UZS</p>
-          </div>
-          <div className="col-span-4 sm:col-span-1">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Итого</p>
-            <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {balance.toFixed(2)} UZS
-            </p>
+            <p className="text-base sm:text-xl font-bold text-red-600">{expense.toFixed(2)} UZS</p>
           </div>
         </div>
         
         {/* Filters and Add Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-between items-start ${isMobile ? 'items-stretch' : 'sm:items-center'} mb-4 sm:mb-6 gap-2 sm:gap-4`}>
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
             <Tabs defaultValue="all" onValueChange={(value) => setFilter(value as any)}>
@@ -287,15 +289,18 @@ const Payments = () => {
         
         {/* Transactions List */}
         {isLoading ? (
-          <div className="flex justify-center items-center h-60">
-            <p>Загрузка...</p>
+          <div className="flex justify-center items-center py-10">
+            <div className="w-full max-w-md">
+              <Progress value={50} className="h-1 w-full mb-2" />
+              <p className="text-center text-gray-500">Загрузка транзакций...</p>
+            </div>
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-60 text-center">
             <img 
               src="/lovable-uploads/45a21ebb-ed44-4dee-ad73-67e4a244f45f.png" 
               alt="Здесь пока пусто" 
-              className="w-32 h-32 mb-4 opacity-60"
+              className="w-24 h-24 sm:w-32 sm:h-32 mb-4 opacity-60"
             />
             <p className="text-xl font-medium text-gray-500 dark:text-gray-400">Здесь пока пусто</p>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
@@ -303,32 +308,36 @@ const Payments = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {filteredTransactions.map((transaction) => (
               <div 
                 key={transaction.id}
-                className="bg-white dark:bg-gray-800 border rounded-lg p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="bg-white dark:bg-gray-800 border rounded-lg p-3 sm:p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 onClick={() => setSelectedTransaction(transaction)}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {transaction.type === 'income' ? (
-                    <div className="bg-green-100 dark:bg-green-900 p-2 rounded-full">
-                      <PlusCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <div className="bg-green-100 dark:bg-green-900 p-1.5 sm:p-2 rounded-full">
+                      <PlusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
                     </div>
                   ) : (
-                    <div className="bg-red-100 dark:bg-red-900 p-2 rounded-full">
-                      <MinusCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    <div className="bg-red-100 dark:bg-red-900 p-1.5 sm:p-2 rounded-full">
+                      <MinusCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
                     </div>
                   )}
                   <div>
-                    <p className="font-medium">{transaction.category}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-sm sm:text-base">
+                      {transaction.category.length > 20 && isMobile 
+                        ? transaction.category.substring(0, 20) + "..."
+                        : transaction.category}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       {format(transaction.createdAt, 'dd.MM.yyyy, HH:mm')}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <p className={`font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`font-bold text-sm sm:text-base ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                     {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} UZS
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -342,7 +351,7 @@ const Payments = () => {
         
         {/* Add Transaction Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className={isMobile ? "w-[95%] max-w-full rounded-lg p-4 top-[5%] sm:max-w-[425px]" : "sm:max-w-[425px]"}>
             <DialogHeader>
               <DialogTitle>
                 {transactionType === 'income' ? 'Добавить приход' : 'Добавить расход'}
@@ -397,6 +406,7 @@ const Payments = () => {
                   value={amount} 
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="Введите сумму" 
+                  className="text-base sm:text-sm"
                 />
               </div>
               
@@ -405,7 +415,7 @@ const Payments = () => {
                 <Label htmlFor="category">Статья</Label>
                 <select 
                   id="category" 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 >
@@ -430,19 +440,35 @@ const Payments = () => {
                   value={comment} 
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Добавьте комментарий (необязательно)" 
+                  className="text-base sm:text-sm"
                 />
               </div>
             </div>
             
             <div className="flex justify-end">
-              <Button onClick={handleAddTransaction}>Сохранить</Button>
+              <Button 
+                onClick={handleAddTransaction} 
+                disabled={isSaving}
+                className="relative"
+              >
+                {isSaving ? (
+                  <>
+                    <span className="opacity-0">Сохранить</span>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="h-5 w-5 border-2 border-b-transparent border-white rounded-full animate-spin"></div>
+                    </div>
+                  </>
+                ) : (
+                  "Сохранить"
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
         
         {/* Transaction Detail Sheet */}
         <Sheet open={!!selectedTransaction} onOpenChange={(open) => !open && setSelectedTransaction(null)}>
-          <SheetContent>
+          <SheetContent className={isMobile ? "w-full p-4" : ""}>
             <SheetHeader>
               <SheetTitle>Детали платежа</SheetTitle>
             </SheetHeader>
