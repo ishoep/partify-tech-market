@@ -4,9 +4,6 @@ import Header from '@/components/Header';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import ProfileSidebar from '@/components/ProfileSidebar';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
-import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainLayoutProps {
@@ -36,31 +33,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     )}>
       <Header />
       <div className="flex flex-1">
-        {currentUser && showSidebar && (
-          <>
-            {isMobile ? (
-              <div className="block md:hidden fixed bottom-4 left-4 z-50">
-                <Drawer>
-                  <DrawerTrigger asChild>
-                    <Button size="icon" variant="outline" className="rounded-full shadow-lg">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </DrawerTrigger>
-                  <DrawerContent className="h-[80vh]">
-                    <div className="max-w-md mx-auto w-full p-6">
-                      <ProfileSidebar />
-                    </div>
-                  </DrawerContent>
-                </Drawer>
-              </div>
-            ) : (
-              <div className="w-64 border-r bg-white dark:bg-black hidden md:block">
-                <div className="p-4">
-                  <ProfileSidebar />
-                </div>
-              </div>
-            )}
-          </>
+        {currentUser && showSidebar && !isMobile && (
+          <div className="w-64 border-r bg-white dark:bg-black hidden md:block">
+            <div className="p-4">
+              <ProfileSidebar />
+            </div>
+          </div>
         )}
         
         <main className={cn(

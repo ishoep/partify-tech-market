@@ -13,7 +13,11 @@ import {
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const ProfileSidebar = () => {
+interface ProfileSidebarProps {
+  onLinkClick?: () => void;
+}
+
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   
@@ -27,39 +31,34 @@ const ProfileSidebar = () => {
     { name: 'Сообщения', path: '/chats', icon: MessageSquare },
   ];
 
+  const handleLinkClick = () => {
+    if (onLinkClick) onLinkClick();
+  };
+
   return (
     <div className="space-y-2">
-      <h2 className={cn(
-        "mb-4 px-2 font-semibold tracking-tight",
-        isMobile ? "text-xl text-center" : "text-lg"
-      )}>
-        Личный кабинет
-      </h2>
-      <nav className={cn(
-        "space-y-1",
-        isMobile && "grid grid-cols-2 gap-2"
-      )}>
+      {!isMobile && (
+        <h2 className="mb-4 px-2 text-lg font-semibold tracking-tight">
+          Личный кабинет
+        </h2>
+      )}
+      <nav className="space-y-1">
         {links.map((link) => (
           <NavLink
             key={link.path}
             to={link.path}
+            onClick={handleLinkClick}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted",
-                isMobile && "justify-center"
+                  : "hover:bg-muted"
               )
             }
           >
-            <link.icon className={cn("h-5 w-5", isMobile && "mr-0")} />
-            <span className={cn(isMobile && "hidden")}>
-              {link.name}
-            </span>
-            {isMobile && location.pathname === link.path && (
-              <span className="sr-only">{link.name}</span>
-            )}
+            <link.icon className="h-5 w-5" />
+            <span>{link.name}</span>
           </NavLink>
         ))}
       </nav>
