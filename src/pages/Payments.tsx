@@ -298,7 +298,7 @@ const Payments = () => {
         ) : filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-60 text-center">
             <img 
-              src="/lovable-uploads/45a21ebb-ed44-4dee-ad73-67e4a244f45f.png" 
+              src="https://static.thenounproject.com/png/2116141-200.png" 
               alt="Здесь пока пусто" 
               className="w-24 h-24 sm:w-32 sm:h-32 mb-4 opacity-60"
             />

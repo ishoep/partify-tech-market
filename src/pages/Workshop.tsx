@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,8 +11,18 @@ import ProfileSidebar from '@/components/ProfileSidebar';
 import { useAuth } from '@/context/AuthContext';
 import { createTask, getTasks, updateTaskStatus } from '@/lib/firebase';
 import { format } from 'date-fns';
+import { Loader } from 'lucide-react';
 
-// Define task statuses
+interface Task {
+  id: string;
+  name: string;
+  client: string;
+  price: number;
+  date: string;
+  status: string;
+  completed: boolean;
+}
+
 const taskStatuses = [
   "Все задачи",
   "Активные",
@@ -27,7 +35,7 @@ const taskStatuses = [
 
 const Workshop: React.FC = () => {
   const { currentUser } = useAuth();
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [activeTab, setActiveTab] = useState("Активные");
@@ -53,8 +61,8 @@ const Workshop: React.FC = () => {
         console.error("Error fetching tasks:", error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to load tasks",
+          title: "Ошибка",
+          description: "Не удалось загрузить задачи",
         });
       } finally {
         setLoading(false);
@@ -71,7 +79,7 @@ const Workshop: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните все поля.",
+        description: "Заполните все обязательные поля",
       });
       return;
     }
@@ -84,12 +92,13 @@ const Workshop: React.FC = () => {
         client,
         price: Number(price),
         date,
-        status: status,
+        status,
+        completed: false
       });
       
       toast({
         title: "Успех",
-        description: "Задача создана.",
+        description: "Задача успешно создана",
       });
       
       // Reset form
@@ -97,6 +106,7 @@ const Workshop: React.FC = () => {
       setClient('');
       setPrice('');
       setDate('');
+      setStatus('Активные');
       
       setShowTaskForm(false);
       
@@ -107,7 +117,7 @@ const Workshop: React.FC = () => {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось создать задачу.",
+        description: error.message || "Не удалось создать задачу",
       });
     } finally {
       setLoading(false);
@@ -124,13 +134,13 @@ const Workshop: React.FC = () => {
       
       toast({
         title: "Успех",
-        description: `Задача ${completed ? "выполнена" : "возобновлена"}.`,
+        description: `Задача ${completed ? "завершена" : "возобновлена"}`,
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось обновить статус задачи.",
+        description: error.message || "Не удалось изменить статус задачи",
       });
     }
   };
@@ -143,25 +153,26 @@ const Workshop: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-row h-full">
-        {/* Sidebar - fixed width */}
-        <div className="w-64 h-full border-r bg-white dark:bg-black">
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Sidebar - hidden on mobile */}
+        <div className="hidden md:block w-full md:w-64 h-full border-r bg-white dark:bg-black">
           <ProfileSidebar />
         </div>
         
         {/* Main content */}
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="mb-4">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate(-1)}
+              className="mb-4"
             >
               Назад
             </Button>
           </div>
           
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader className="bg-primary/10 pb-2">
               <CardTitle className="text-2xl text-left">Мастерская</CardTitle>
             </CardHeader>
@@ -170,30 +181,35 @@ const Workshop: React.FC = () => {
               <Tabs defaultValue="Активные" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full flex overflow-auto py-2 justify-start border-b">
                   {taskStatuses.map((status) => (
-                    <TabsTrigger key={status} value={status} className="px-4">
+                    <TabsTrigger 
+                      key={status} 
+                      value={status} 
+                      className="px-3 py-1 text-sm md:px-4 md:py-2 md:text-base"
+                    >
                       {status}
                     </TabsTrigger>
                   ))}
                 </TabsList>
                 
                 <TabsContent value={activeTab} className="px-4 py-4">
-                  <div className="mb-4 flex justify-between items-center">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium">Задачи: {activeTab}</h3>
-                    </div>
-                    <Button onClick={() => setShowTaskForm(!showTaskForm)}>
+                  <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <h3 className="text-lg font-medium">Задачи: {activeTab}</h3>
+                    <Button 
+                      onClick={() => setShowTaskForm(!showTaskForm)}
+                      disabled={loading}
+                    >
                       {showTaskForm ? "Отмена" : "Добавить задачу"}
                     </Button>
                   </div>
                   
                   {showTaskForm && (
                     <div className="mb-6">
-                      <Card className="bg-white/50 dark:bg-black/50">
+                      <Card className="bg-background">
                         <CardContent className="p-4">
                           <form onSubmit={handleCreateTask} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                <Label htmlFor="taskName" className="text-left block">Название задачи*</Label>
+                                <Label htmlFor="taskName">Название задачи*</Label>
                                 <Input
                                   id="taskName"
                                   value={taskName}
@@ -203,7 +219,7 @@ const Workshop: React.FC = () => {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label htmlFor="client" className="text-left block">Клиент*</Label>
+                                <Label htmlFor="client">Клиент*</Label>
                                 <Input
                                   id="client"
                                   value={client}
@@ -213,7 +229,7 @@ const Workshop: React.FC = () => {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label htmlFor="price" className="text-left block">Цена (UZS)*</Label>
+                                <Label htmlFor="price">Цена (UZS)*</Label>
                                 <Input
                                   id="price"
                                   type="number"
@@ -225,7 +241,7 @@ const Workshop: React.FC = () => {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label htmlFor="date" className="text-left block">Дата*</Label>
+                                <Label htmlFor="date">Дата*</Label>
                                 <Input
                                   id="date"
                                   type="date"
@@ -236,10 +252,10 @@ const Workshop: React.FC = () => {
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor="status" className="text-left block">Статус*</Label>
+                                <Label htmlFor="status">Статус*</Label>
                                 <select
                                   id="status"
-                                  className="w-full border border-gray-300 rounded p-2 bg-white dark:bg-black"
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                   value={status}
                                   onChange={(e) => setStatus(e.target.value)}
                                   required
@@ -256,7 +272,7 @@ const Workshop: React.FC = () => {
                               disabled={loading}
                               className="w-full"
                             >
-                              {loading ? "Добавление..." : "Добавить задачу"}
+                              {loading ? "Создание..." : "Создать задачу"}
                             </Button>
                           </form>
                         </CardContent>
@@ -265,12 +281,12 @@ const Workshop: React.FC = () => {
                   )}
                   
                   {loading ? (
-                    <div className="text-center py-8">
-                      <p>Загрузка задач...</p>
+                    <div className="flex justify-center items-center py-8">
+                      <Loader className="h-6 w-6 animate-spin" />
                     </div>
                   ) : filteredTasks.length > 0 ? (
                     <div className="space-y-2">
-                      <div className="grid grid-cols-8 gap-2 p-2 font-medium text-sm border-b text-muted-foreground">
+                      <div className="hidden md:grid grid-cols-8 gap-2 p-2 font-medium text-sm border-b text-muted-foreground">
                         <div className="col-span-2">Заказ / Клиент</div>
                         <div className="col-span-2">Статус</div>
                         <div className="col-span-1">Срок</div>
@@ -280,28 +296,33 @@ const Workshop: React.FC = () => {
                       {filteredTasks.map((task) => (
                         <div 
                           key={task.id} 
-                          className="grid grid-cols-8 gap-2 p-3 border rounded-md bg-white/50 dark:bg-black/50 items-center hover:bg-gray-50 dark:hover:bg-gray-900"
+                          className="grid grid-cols-1 md:grid-cols-8 gap-2 p-3 border rounded-md bg-background hover:bg-accent"
                         >
-                          <div className="col-span-2">
+                          <div className="md:col-span-2">
                             <p className="font-medium">{task.name}</p>
                             <p className="text-sm text-muted-foreground">{task.client}</p>
                           </div>
-                          <div className="col-span-2">
-                            <span className={`px-2 py-1 rounded-full text-xs ${task.completed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                          <div className="md:col-span-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              task.completed 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' 
+                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                            }`}>
                               {task.status || (task.completed ? 'Готов' : 'Активные')}
                             </span>
                           </div>
-                          <div className="col-span-1 text-sm">
+                          <div className="md:col-span-1 text-sm">
                             {task.date ? format(new Date(task.date), 'dd.MM.yyyy') : 'Не указана'}
                           </div>
-                          <div className="col-span-1 text-sm font-medium">
+                          <div className="md:col-span-1 text-sm font-medium">
                             {task.price?.toLocaleString() || 0} UZS
                           </div>
-                          <div className="col-span-2 flex gap-2">
+                          <div className="md:col-span-2 flex gap-2 justify-end md:justify-start">
                             <Button 
-                              variant="outline" 
+                              variant={task.completed ? "secondary" : "default"}
                               size="sm"
                               onClick={() => toggleTaskStatus(task.id, !task.completed)}
+                              className="w-full md:w-auto"
                             >
                               {task.completed ? "Возобновить" : "Завершить"}
                             </Button>
@@ -311,8 +332,14 @@ const Workshop: React.FC = () => {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      <p>Нет задач в категории {activeTab}</p>
-                      <p className="text-sm mt-2">Добавьте новую задачу или измените фильтр</p>
+                      <p>Нет задач в категории "{activeTab}"</p>
+                      <Button 
+                        variant="ghost" 
+                        className="mt-2"
+                        onClick={() => setShowTaskForm(true)}
+                      >
+                        Добавить новую задачу
+                      </Button>
                     </div>
                   )}
                 </TabsContent>

@@ -13,6 +13,7 @@ import { updateUserProfile } from '@/lib/firebase';
 import { getAuth } from "firebase/auth";
 import { EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { Loader } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile'; // добавлен импорт
 
 const Profile: React.FC = () => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -26,8 +27,8 @@ const Profile: React.FC = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile(); // проверка устройства
 
-  // Initialize user data when it's available
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.displayName || '');
@@ -47,21 +48,17 @@ const Profile: React.FC = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     setLoading(true);
-    
+
     try {
-      // Update name
       if (currentUser) {
         await updateProfile(currentUser, { displayName: name });
-      
-        // Update profile in Firestore
         await updateUserProfile(currentUser.uid, {
           displayName: name,
           phone,
         });
       }
-      
+
       toast({
         title: "Успех",
         description: "Профиль успешно обновлен.",
@@ -79,7 +76,7 @@ const Profile: React.FC = () => {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       toast({
         variant: "destructive",
@@ -88,28 +85,24 @@ const Profile: React.FC = () => {
       });
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       if (currentUser && currentUser.email) {
-        // Reauthenticate with current password
         const credential = EmailAuthProvider.credential(
           currentUser.email,
           currentPassword
         );
-        
+
         await reauthenticateWithCredential(currentUser, credential);
-        
-        // Change password
         await updatePassword(currentUser, newPassword);
-        
+
         toast({
           title: "Успех",
           description: "Пароль успешно изменен.",
         });
-        
-        // Clear password fields
+
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
@@ -128,12 +121,14 @@ const Profile: React.FC = () => {
   return (
     <MainLayout>
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-64">
-          <ProfileSidebar />
-        </div>
-        
+        {!isMobile && (
+          <div className="w-full md:w-64">
+            <ProfileSidebar />
+          </div>
+        )}
+
         <div className="flex-1">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <Button
               variant="outline"
               size="sm"
@@ -141,8 +136,9 @@ const Profile: React.FC = () => {
             >
               Назад
             </Button>
+           
           </div>
-          
+
           {!dataLoaded ? (
             <div className="flex justify-center items-center h-64">
               <Loader className="h-8 w-8 animate-spin text-primary" />

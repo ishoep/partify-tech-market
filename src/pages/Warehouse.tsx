@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,10 +9,20 @@ import ProductList from '@/components/ProductList';
 import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
 import { getProducts, getShopByUserId } from '@/lib/firebase';
+import { Loader } from 'lucide-react';
+
+interface WarehouseProduct {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  status: string;
+  // Добавьте другие необходимые поля
+}
 
 const Warehouse: React.FC = () => {
   const { currentUser } = useAuth();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<WarehouseProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [shop, setShop] = useState<any>(null);
@@ -26,25 +35,22 @@ const Warehouse: React.FC = () => {
       
       setLoading(true);
       try {
-        // Get shop information first
         const shopData = await getShopByUserId(currentUser.uid);
         setShop(shopData);
         
         if (shopData) {
-          // Fetch warehouse products
           const warehouseProducts = await getProducts({ 
             userId: currentUser.uid,
             status: "На складе"
           });
-          
           setProducts(warehouseProducts);
         }
       } catch (error) {
         console.error("Error fetching warehouse data:", error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to load warehouse data",
+          title: "Ошибка",
+          description: "Не удалось загрузить данные склада",
         });
       } finally {
         setLoading(false);
@@ -62,17 +68,21 @@ const Warehouse: React.FC = () => {
         userId: currentUser.uid,
         status: "На складе"
       });
-      
       setProducts(warehouseProducts);
     } catch (error) {
       console.error("Error refreshing products:", error);
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: "Не удалось обновить список товаров",
+      });
     }
   };
 
   return (
     <MainLayout>
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-64">
+        <div className="hidden md:block w-full md:w-64">
           <ProfileSidebar />
         </div>
         
@@ -94,10 +104,10 @@ const Warehouse: React.FC = () => {
             <CardContent>
               {!shop ? (
                 <div className="text-center py-8">
-                  <p>Для управления складом необходимо создать магазин</p>
+                  <p className="mb-4">Для управления складом необходимо создать магазин</p>
                   <Button
                     onClick={() => navigate('/shop')}
-                    className="mt-4"
+                    className="mt-2"
                   >
                     Создать магазин
                   </Button>
@@ -106,7 +116,10 @@ const Warehouse: React.FC = () => {
                 <>
                   <div className="mb-4 flex justify-between items-center">
                     <h3 className="text-lg font-medium">Товары на складе</h3>
-                    <Button onClick={() => setShowProductForm(!showProductForm)}>
+                    <Button 
+                      onClick={() => setShowProductForm(!showProductForm)}
+                      disabled={loading}
+                    >
                       {showProductForm ? "Отмена" : "Добавить товар"}
                     </Button>
                   </div>
@@ -120,19 +133,21 @@ const Warehouse: React.FC = () => {
                           setShowProductForm(false);
                           refreshProducts();
                         }}
+                        defaultStatus="На складе"
                       />
                     </div>
                   )}
                   
                   {loading ? (
-                    <div className="text-center py-8">
-                      <p>Загрузка...</p>
+                    <div className="flex justify-center items-center py-8">
+                      <Loader className="h-8 w-8 animate-spin text-primary" />
                     </div>
                   ) : (
                     <ProductList 
                       products={products} 
                       onUpdate={refreshProducts} 
                       warehouseView
+                      emptyMessage="На складе нет товаров"
                     />
                   )}
                 </>

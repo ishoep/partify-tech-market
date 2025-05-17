@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -15,9 +14,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProfileSidebarProps {
   onLinkClick?: () => void;
+  excludeLinks?: string[];
 }
 
-const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick }) => {
+const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick, excludeLinks = [] }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   
@@ -27,16 +27,14 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick }) => {
     { name: 'Склад', path: '/warehouse', icon: Warehouse },
     { name: 'Мастерская', path: '/workshop', icon: Wrench },
     { name: 'Платежи', path: '/payments', icon: Wallet },
-    { name: 'Избранное', path: '/favorites', icon: Heart },
-    { name: 'Сообщения', path: '/chats', icon: MessageSquare },
-  ];
+  ].filter(link => !excludeLinks.includes(link.path));
 
   const handleLinkClick = () => {
     if (onLinkClick) onLinkClick();
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-4">
       {!isMobile && (
         <h2 className="mb-4 px-2 text-lg font-semibold tracking-tight">
           Личный кабинет

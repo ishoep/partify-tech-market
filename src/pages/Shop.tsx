@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,9 +36,9 @@ interface Shop {
   telegram?: string;
   website?: string;
   description?: string;
-  addresses?: ShopAddress[];  // Changed from single address to array of addresses
+  addresses?: ShopAddress[];
   hasDelivery?: boolean;
-  [key: string]: any; // Allow additional properties
+  [key: string]: any;
 }
 
 const Shop: React.FC = () => {
@@ -73,7 +73,6 @@ const Shop: React.FC = () => {
         if (shopData) {
           const typedShopData = shopData as Shop;
           setShop(typedShopData);
-          // Fill form fields with shop data
           setName(typedShopData.name || '');
           setPhone(typedShopData.phone || '');
           setEmail(typedShopData.email || currentUser.email || '');
@@ -81,23 +80,19 @@ const Shop: React.FC = () => {
           setWebsite(typedShopData.website || '');
           setDescription(typedShopData.description || '');
           
-          // Handle addresses - migration from old format to new format if needed
           if (typedShopData.addresses && typedShopData.addresses.length > 0) {
             setAddresses(typedShopData.addresses);
           } else if (typedShopData.address && typedShopData.city) {
-            // If we have old format data, convert it to new format
             setAddresses([{ 
               city: typedShopData.city || cities[0], 
               address: typedShopData.address || '' 
             }]);
           } else {
-            // Default empty address
             setAddresses([{ city: cities[0], address: '' }]);
           }
           
           setHasDelivery(typedShopData.hasDelivery || false);
           
-          // Fetch shop products
           const shopProducts = await getProducts({ shopId: currentUser.uid });
           setProducts(shopProducts);
         }
@@ -118,7 +113,6 @@ const Shop: React.FC = () => {
 
   const removeAddress = (index: number) => {
     if (addresses.length === 1) {
-      // Keep at least one address
       toast({
         variant: "destructive",
         title: "Ошибка",
@@ -248,7 +242,7 @@ const Shop: React.FC = () => {
   return (
     <MainLayout>
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-64">
+        <div className="hidden md:block w-full md:w-64">
           <ProfileSidebar />
         </div>
         
