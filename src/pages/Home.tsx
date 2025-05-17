@@ -29,7 +29,7 @@ const Home: React.FC = () => {
 
   return (
     <MainLayout fullWidth plainBackground>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black">
+      <div className="mt-56 flex flex-col items-center justify-center bg-white dark:bg-black">
         <div className="w-full max-w-lg px-4">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">telepart</h1>

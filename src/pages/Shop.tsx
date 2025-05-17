@@ -399,13 +399,60 @@ const Shop: React.FC = () => {
                 <CardTitle className="text-2xl text-left">Управление магазином</CardTitle>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="info">
+                <Tabs defaultValue="products">
                   <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="info">Информация</TabsTrigger>
-                    <TabsTrigger value="address">Адреса</TabsTrigger>
                     <TabsTrigger value="products">Товары</TabsTrigger>
                     <TabsTrigger value="delivery">Доставка</TabsTrigger>
+                    <TabsTrigger value="info">Информация</TabsTrigger>
+                    <TabsTrigger value="address">Адреса</TabsTrigger>
                   </TabsList>
+                  
+                  <TabsContent value="products" className="pt-4">
+                    <div className="mb-4 flex justify-between items-center">
+                      <h3 className="text-lg font-medium">Товары магазина</h3>
+                      <Button onClick={() => setShowProductForm(!showProductForm)}>
+                        {showProductForm ? "Отмена" : "Добавить товар"}
+                      </Button>
+                    </div>
+                    
+                    {showProductForm && (
+                      <div className="mb-6">
+                        <ProductForm 
+                          shopId={currentUser?.uid || ''} 
+                          shopName={name}
+                          onComplete={() => {
+                            setShowProductForm(false);
+                            refreshProducts();
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <ProductList 
+                      products={products} 
+                      onUpdate={refreshProducts} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="delivery" className="pt-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-4">
+                        <Switch
+                          id="hasDelivery"
+                          checked={hasDelivery}
+                          onCheckedChange={setHasDelivery}
+                        />
+                        <Label htmlFor="hasDelivery">Есть доставка</Label>
+                      </div>
+                      
+                      <Button
+                        onClick={handleUpdateShop}
+                        disabled={loading}
+                      >
+                        {loading ? "Обновление..." : "Сохранить настройки"}
+                      </Button>
+                    </div>
+                  </TabsContent>
                   
                   <TabsContent value="info" className="pt-4">
                     <form onSubmit={handleUpdateShop} className="space-y-4">
@@ -539,53 +586,6 @@ const Shop: React.FC = () => {
                         className="w-full"
                       >
                         {loading ? "Обновление..." : "Обновить адреса"}
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="products" className="pt-4">
-                    <div className="mb-4 flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Товары магазина</h3>
-                      <Button onClick={() => setShowProductForm(!showProductForm)}>
-                        {showProductForm ? "Отмена" : "Добавить товар"}
-                      </Button>
-                    </div>
-                    
-                    {showProductForm && (
-                      <div className="mb-6">
-                        <ProductForm 
-                          shopId={currentUser?.uid || ''} 
-                          shopName={name}
-                          onComplete={() => {
-                            setShowProductForm(false);
-                            refreshProducts();
-                          }}
-                        />
-                      </div>
-                    )}
-                    
-                    <ProductList 
-                      products={products} 
-                      onUpdate={refreshProducts} 
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="delivery" className="pt-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        <Switch
-                          id="hasDelivery"
-                          checked={hasDelivery}
-                          onCheckedChange={setHasDelivery}
-                        />
-                        <Label htmlFor="hasDelivery">Есть доставка</Label>
-                      </div>
-                      
-                      <Button
-                        onClick={handleUpdateShop}
-                        disabled={loading}
-                      >
-                        {loading ? "Обновление..." : "Сохранить настройки"}
                       </Button>
                     </div>
                   </TabsContent>

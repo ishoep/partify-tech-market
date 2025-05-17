@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { uploadImage } from '@/lib/imgbb';
 import { createProduct } from '@/lib/firebase';
+import { Switch } from '@/components/ui/switch';
 
 // Упрощенный список категорий
 const categories = [
@@ -27,6 +27,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
   const [model, setModel] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
+  const [isInStock, setIsInStock] = useState(true);
   const [quantity, setQuantity] = useState('1');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -39,6 +40,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       const file = e.target.files[0];
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleStockToggle = (checked: boolean) => {
+    setIsInStock(checked);
+    if (!checked) {
+      setQuantity('0');
+    } else {
+      setQuantity('1');
     }
   };
 
@@ -61,15 +71,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       
       if (image) {
         try {
-          // Попытка загрузки изображения
           imageUrl = await uploadImage(image);
         } catch (uploadError) {
           console.error("Error uploading image:", uploadError);
-          // Продолжаем без изображения, если загрузка не удалась
         }
       }
       
-      // Create product in Firestore
       await createProduct({
         name,
         model,
@@ -80,7 +87,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
         imageUrl,
         shopId,
         shopName,
-        status: "На витрине",
+        status: isInStock ? "На витрине" : "Нет в наличии",
         hasDelivery: false,
         createdAt: new Date(),
       });
@@ -95,6 +102,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
       setModel('');
       setCategory('');
       setPrice('');
+      setIsInStock(true);
       setQuantity('1');
       setDescription('');
       setImage(null);
@@ -167,6 +175,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
             />
           </div>
           
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="stock-status" 
+              checked={isInStock} 
+              onCheckedChange={handleStockToggle}
+            />
+            <Label htmlFor="stock-status">В наличии</Label>
+          </div>
+          
           <div>
             <Label htmlFor="quantity" className="text-left block mb-1">Количество</Label>
             <Input
@@ -174,7 +191,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ shopId, shopName, onComplete 
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              min={1}
+              min={0}
+              disabled={!isInStock}
             />
           </div>
           

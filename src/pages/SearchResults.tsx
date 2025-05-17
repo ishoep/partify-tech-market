@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/components/MainLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Truck } from 'lucide-react';
+import { Search, Truck, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -14,7 +13,6 @@ import { getProducts } from '@/lib/firebase';
 import ProductList from '@/components/ProductList';
 import { useToast } from '@/components/ui/use-toast';
 
-// Simplified category list - same as Home page
 const categories = [
   "Все категории",
   "Запчасти",
@@ -22,7 +20,12 @@ const categories = [
   "Аксессуары"
 ];
 
-// Define an interface for our filters
+const availabilityOptions = [
+  { value: 'all', label: 'Все товары' },
+  { value: 'inStock', label: 'В наличии' },
+  { value: 'outOfStock', label: 'Нет в наличии' }
+];
+
 interface SearchFilters {
   category?: string;
   shopId?: string;
@@ -35,39 +38,33 @@ const SearchResults = () => {
   const category = searchParams.get('category') || 'Все категории';
   const city = searchParams.get('city') || '';
   const deliveryFilter = searchParams.get('delivery') || 'all';
+  const availabilityFilter = searchParams.get('availability') || 'all';
+  const countrySearch = searchParams.get('countrySearch') === 'true';
   
   const { selectedCity, cities, setSelectedCity } = useCity();
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState(term);
   const [selectedCategory, setSelectedCategory] = useState(category);
+  const [selectedAvailability, setSelectedAvailability] = useState(availabilityFilter);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [onlyWithDelivery, setOnlyWithDelivery] = useState(deliveryFilter === 'delivery');
   const [onlyWithoutDelivery, setOnlyWithoutDelivery] = useState(deliveryFilter === 'nodelivery');
-  
+  const [searchCountryWide, setSearchCountryWide] = useState(countrySearch);
+
   useEffect(() => {
     const fetchSearchResults = async () => {
       setLoading(true);
       try {
-        console.log('Fetching products with term:', term);
-        console.log('Category filter:', category);
-        console.log('City filter:', city || selectedCity);
-        console.log('Delivery filter:', deliveryFilter);
-        
-        // Create a properly typed filters object
         const filters: SearchFilters = {};
         
-        // Only add category filter if not "All categories"
         if (category !== 'Все категории') {
           filters.category = category;
         }
         
-        // First, get all products matching the category filter
         const allProducts = await getProducts(filters);
-        console.log('Products from getProducts:', allProducts);
         
-        // Then manually filter by search term since Firebase doesn't support full text search
         let filteredByTerm = allProducts;
         if (term) {
           const lowerTerm = term.toLowerCase();
@@ -79,49 +76,38 @@ const SearchResults = () => {
           );
         }
         
-        console.log('Products after term filtering:', filteredByTerm);
-        
-        // Apply city filter - now considering multiple shop addresses
         const cityToFilter = city || selectedCity;
         let cityFilteredProducts = filteredByTerm;
         
-        if (cityToFilter) {
-          // Get products directly from the selected city (shop has an address in this city)
+        // Если не выбран поиск по всей стране, фильтруем по городу
+        if (cityToFilter && !searchCountryWide) {
           cityFilteredProducts = filteredByTerm.filter(product => {
-            // Check if product.shop exists and has addresses array
             if (product.shop && product.shop.addresses && Array.isArray(product.shop.addresses)) {
               return product.shop.addresses.some(addr => addr.city === cityToFilter);
             }
-            
-            // Fallback to simple city check for backward compatibility
             return product.city === cityToFilter;
           });
-          
-          // Add products with delivery from other cities if not filtering to only show products without delivery
-          if (!onlyWithoutDelivery) {
-            const deliveryProducts = filteredByTerm.filter(
-              product => {
-                // Check if product is not already included and has delivery
-                const isFromDifferentCity = !(product.shop?.addresses?.some(addr => addr.city === cityToFilter) || product.city === cityToFilter);
-                return isFromDifferentCity && product.hasDelivery === true;
-              }
-            );
-            
-            cityFilteredProducts = [...cityFilteredProducts, ...deliveryProducts];
-          }
         }
         
-        // Apply delivery filter
-        let finalProducts = cityFilteredProducts;
+        // Фильтр по доставке
+        let deliveryFilteredProducts = cityFilteredProducts;
         
         if (onlyWithDelivery) {
-          finalProducts = cityFilteredProducts.filter(product => product.hasDelivery === true);
+          deliveryFilteredProducts = cityFilteredProducts.filter(product => product.hasDelivery === true);
         } else if (onlyWithoutDelivery) {
-          finalProducts = cityFilteredProducts.filter(product => product.hasDelivery !== true);
+          deliveryFilteredProducts = cityFilteredProducts.filter(product => product.hasDelivery !== true);
+        }
+        
+        // Фильтр по наличию
+        let finalProducts = deliveryFilteredProducts;
+        
+        if (selectedAvailability === 'inStock') {
+          finalProducts = deliveryFilteredProducts.filter(product => product.quantity > 0);
+        } else if (selectedAvailability === 'outOfStock') {
+          finalProducts = deliveryFilteredProducts.filter(product => product.quantity <= 0);
         }
         
         setProducts(finalProducts);
-        console.log('Final filtered products:', finalProducts);
       } catch (error) {
         console.error('Error fetching search results:', error);
         toast({
@@ -135,7 +121,8 @@ const SearchResults = () => {
     };
 
     fetchSearchResults();
-  }, [term, category, city, selectedCity, deliveryFilter, onlyWithDelivery, onlyWithoutDelivery, toast]);
+  }, [term, category, city, selectedCity, deliveryFilter, onlyWithDelivery, 
+      onlyWithoutDelivery, selectedAvailability, searchCountryWide, toast]);
   
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -143,7 +130,6 @@ const SearchResults = () => {
     params.set('category', selectedCategory);
     params.set('city', selectedCity);
     
-    // Set delivery filter
     if (onlyWithDelivery) {
       params.set('delivery', 'delivery');
     } else if (onlyWithoutDelivery) {
@@ -152,6 +138,8 @@ const SearchResults = () => {
       params.set('delivery', 'all');
     }
     
+    params.set('availability', selectedAvailability);
+    params.set('countrySearch', searchCountryWide.toString());
     setSearchParams(params);
   };
   
@@ -171,10 +159,21 @@ const SearchResults = () => {
     }
   };
   
+  const handleAvailabilityChange = (value: string) => {
+    setSelectedAvailability(value);
+  };
+
+  const handleCountryWideSearch = () => {
+    setSearchCountryWide(true);
+    // Обновляем параметры поиска
+    const params = new URLSearchParams(searchParams);
+    params.set('countrySearch', 'true');
+    setSearchParams(params);
+  };
+
   return (
     <MainLayout>
       <div className="w-full">
-        {/* Search filters */}
         <div className="bg-white dark:bg-black border-b py-4">
           <div className="container flex flex-col sm:flex-row gap-2 items-center">
             <div className="relative flex-1">
@@ -218,6 +217,9 @@ const SearchResults = () => {
                   <SelectValue placeholder="Город" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">
+                    Все города
+                  </SelectItem>
                   {cities.map((city) => (
                     <SelectItem key={city} value={city}>
                       {city}
@@ -229,7 +231,6 @@ const SearchResults = () => {
           </div>
         </div>
         
-        {/* Additional filters */}
         <div className="container pt-4 pb-2">
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center space-x-2">
@@ -239,7 +240,7 @@ const SearchResults = () => {
                 onCheckedChange={() => handleDeliveryFilterChange('delivery')}
               />
               <Label htmlFor="delivery-filter" className="flex items-center">
-                <Truck className="w-4 h-4 mr-1" /> Только с доставкой
+                <Truck className="w-4 w-4 mr-1" /> Только с доставкой
               </Label>
             </div>
             
@@ -252,6 +253,31 @@ const SearchResults = () => {
               <Label htmlFor="nodelivery-filter">Без доставки</Label>
             </div>
             
+            <Select
+              value={selectedAvailability}
+              onValueChange={handleAvailabilityChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Наличие" />
+              </SelectTrigger>
+              <SelectContent>
+                {availabilityOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant={searchCountryWide ? "default" : "outline"}
+              onClick={() => setSearchCountryWide(!searchCountryWide)}
+              className="flex items-center gap-1"
+            >
+              <MapPin className="h-4 w-4" />
+              {searchCountryWide ? 'По всей стране' : 'Только в городе'}
+            </Button>
+            
             <Button 
               variant="outline" 
               size="sm" 
@@ -262,14 +288,15 @@ const SearchResults = () => {
           </div>
         </div>
         
-        {/* Search results */}
         <div className="container py-4">
           <h2 className="text-xl font-medium mb-4">
             {term ? `Результаты поиска: ${term}` : 'Все товары'}
             {category !== 'Все категории' ? ` в категории ${category}` : ''}
-            {(city || selectedCity) ? ` в городе ${city || selectedCity}` : ''}
+            {(city || selectedCity) && !searchCountryWide ? ` в городе ${city || selectedCity}` : ' по всей стране'}
             {onlyWithDelivery ? ' (только с доставкой)' : ''}
             {onlyWithoutDelivery ? ' (только без доставки)' : ''}
+            {selectedAvailability === 'inStock' ? ' (только в наличии)' : ''}
+            {selectedAvailability === 'outOfStock' ? ' (только нет в наличии)' : ''}
           </h2>
           
           {loading ? (
@@ -286,6 +313,16 @@ const SearchResults = () => {
             <div className="text-center py-8 text-muted-foreground">
               <p>Нет результатов по вашему запросу</p>
               <p className="text-sm mt-2">Попробуйте изменить параметры поиска</p>
+              {!searchCountryWide && (
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={handleCountryWideSearch}
+                >
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Искать по всей стране
+                </Button>
+              )}
             </div>
           )}
         </div>

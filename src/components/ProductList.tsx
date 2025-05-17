@@ -13,7 +13,7 @@ interface ProductListProps {
   onUpdate: () => void;
   showDeliveryBadge?: boolean;
   showActions?: boolean;
-  warehouseView?: boolean;  // Add this prop to the interface
+  warehouseView?: boolean;
 }
 
 const ProductList: React.FC<ProductListProps> = ({ 
@@ -21,7 +21,7 @@ const ProductList: React.FC<ProductListProps> = ({
   onUpdate, 
   showDeliveryBadge = false,
   showActions = true,
-  warehouseView = false  // Set default value to false
+  warehouseView = false
 }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -32,7 +32,6 @@ const ProductList: React.FC<ProductListProps> = ({
   };
   
   const handleEditProduct = (productId: string) => {
-    // Navigate to edit product page
     navigate(`/products/edit/${productId}`);
   };
   
@@ -63,7 +62,6 @@ const ProductList: React.FC<ProductListProps> = ({
         });
       }
       
-      // Refresh product list
       if (onUpdate) onUpdate();
     } catch (error) {
       console.error("Error toggling favorite:", error);
@@ -78,21 +76,20 @@ const ProductList: React.FC<ProductListProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {products.map((product) => (
-        <Card key={product.id} className="overflow-hidden">
+        <Card key={product.id} className="overflow-hidden flex flex-col h-full">
+          {/* Измененная секция изображения */}
           <div 
-            className="h-40 bg-gray-200 cursor-pointer" 
+            className="relative h-48 w-full bg-gray-100 flex items-center justify-center cursor-pointer"
             onClick={() => handleViewProduct(product.id)}
           >
             {product.imageUrl ? (
               <img 
                 src={product.imageUrl} 
                 alt={product.name} 
-                className="h-full w-full object-cover"
+                className="object-contain h-full w-full"
               />
             ) : (
-              <div className="h-full w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                <Package className="h-12 w-12 text-gray-400" />
-              </div>
+              <Package className="h-12 w-12 text-gray-400" />
             )}
           </div>
           
@@ -106,9 +103,6 @@ const ProductList: React.FC<ProductListProps> = ({
               </CardTitle>
             </div>
             <div className="flex gap-1 flex-wrap mt-1">
-              <Badge variant="outline">
-                {product.category || 'Без категории'}
-              </Badge>
               {product.city && (
                 <Badge variant="secondary">
                   {product.city}
@@ -119,6 +113,9 @@ const ProductList: React.FC<ProductListProps> = ({
                   <Truck className="h-3 w-3 mr-1" /> Доставка
                 </Badge>
               )}
+              <Badge variant={product.quantity > 0 ? "default" : "destructive"}>
+                {product.quantity > 0 ? "В наличии" : "Нет в наличии"}
+              </Badge>
             </div>
           </CardHeader>
           
@@ -132,7 +129,7 @@ const ProductList: React.FC<ProductListProps> = ({
           </CardContent>
           
           {showActions && (
-            <CardFooter className="p-3 pt-0 flex justify-between">
+            <CardFooter className="p-3 pt-0 flex justify-between mt-auto">
               <Button 
                 variant="outline" 
                 size="sm"

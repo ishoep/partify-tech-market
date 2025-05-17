@@ -194,7 +194,7 @@ const ProductDetail: React.FC = () => {
           <img
             src={product?.imageUrl || "https://placehold.co/600x400?text=Нет+фото"}
             alt={product?.name}
-            className="w-full h-auto object-cover max-h-[400px]"
+            className="object-contain h-full w-full max-h-[400px]"
           />
         </div>
         

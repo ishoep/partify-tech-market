@@ -25,7 +25,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="w-full border-b p-2 sm:p-3 sticky top-0 bg-background z-50">
+    <header className="w-full border-b p-2 sticky top-0 bg-background z-50">
       <div className="container flex items-center justify-between gap-4 px-2 sm:px-0">
         {/* Логотип */}
         <Link to="/" className="flex items-center text-xl font-bold text-primary">
