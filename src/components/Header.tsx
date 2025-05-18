@@ -25,8 +25,8 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="w-full border-b p-2 sticky top-0 bg-background z-50">
-      <div className="container flex items-center justify-between gap-4 px-2 sm:px-0">
+    <header className="w-full border-b sticky top-0 bg-background z-50">
+      <div className="flex items-center justify-between gap-4 px-4 py-2">
         {/* Логотип */}
         <Link to="/" className="flex items-center text-xl font-bold text-primary">
           Telepart
@@ -48,7 +48,7 @@ const Header: React.FC = () => {
                   Навигационное меню пользователя
                 </SheetDescription>
                 <div className="h-full flex flex-col">
-                  {/* Хедер сайдбара без крестика — используем встроенный */}
+                  {/* Хедер сайдбара */}
                   <div className="flex items-center p-4 border-b">
                     <h2 className="font-semibold text-lg">Меню</h2>
                   </div>

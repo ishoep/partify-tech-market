@@ -79,13 +79,15 @@ const SearchResults = () => {
         const cityToFilter = city || selectedCity;
         let cityFilteredProducts = filteredByTerm;
         
-        // Если не выбран поиск по всей стране, фильтруем по городу
+        // Улучшенная фильтрация по городу
         if (cityToFilter && !searchCountryWide) {
           cityFilteredProducts = filteredByTerm.filter(product => {
-            if (product.shop && product.shop.addresses && Array.isArray(product.shop.addresses)) {
-              return product.shop.addresses.some(addr => addr.city === cityToFilter);
-            }
-            return product.city === cityToFilter;
+            // Проверяем разные варианты хранения города
+            const productCity = product.city || 
+                              product.shop?.city || 
+                              (product.shop?.addresses?.[0]?.city);
+            
+            return productCity?.toLowerCase() === cityToFilter.toLowerCase();
           });
         }
         
@@ -128,7 +130,8 @@ const SearchResults = () => {
     const params = new URLSearchParams();
     params.set('term', searchTerm);
     params.set('category', selectedCategory);
-    params.set('city', selectedCity);
+    // Убедимся, что передаем актуальный выбранный город
+    params.set('city', selectedCity || '');
     
     if (onlyWithDelivery) {
       params.set('delivery', 'delivery');
@@ -165,7 +168,6 @@ const SearchResults = () => {
 
   const handleCountryWideSearch = () => {
     setSearchCountryWide(true);
-    // Обновляем параметры поиска
     const params = new URLSearchParams(searchParams);
     params.set('countrySearch', 'true');
     setSearchParams(params);
@@ -217,7 +219,7 @@ const SearchResults = () => {
                   <SelectValue placeholder="Город" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="all">
                     Все города
                   </SelectItem>
                   {cities.map((city) => (
@@ -240,7 +242,7 @@ const SearchResults = () => {
                 onCheckedChange={() => handleDeliveryFilterChange('delivery')}
               />
               <Label htmlFor="delivery-filter" className="flex items-center">
-                <Truck className="w-4 w-4 mr-1" /> Только с доставкой
+                <Truck className="w-4 mr-1" /> Только с доставкой
               </Label>
             </div>
             
