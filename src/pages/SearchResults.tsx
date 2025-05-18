@@ -53,21 +53,40 @@ const SearchResults = () => {
   const [onlyWithoutDelivery, setOnlyWithoutDelivery] = useState(deliveryFilter === 'nodelivery');
   const [searchCountryWide, setSearchCountryWide] = useState(countrySearch);
 
+  const updateSearchParams = () => {
+    const params = new URLSearchParams();
+    params.set('term', searchTerm);
+    params.set('category', selectedCategory);
+    params.set('city', selectedCity || '');
+    
+    if (onlyWithDelivery) {
+      params.set('delivery', 'delivery');
+    } else if (onlyWithoutDelivery) {
+      params.set('delivery', 'nodelivery');
+    } else {
+      params.set('delivery', 'all');
+    }
+    
+    params.set('availability', selectedAvailability);
+    params.set('countrySearch', searchCountryWide.toString());
+    setSearchParams(params);
+  };
+
   useEffect(() => {
     const fetchSearchResults = async () => {
       setLoading(true);
       try {
         const filters: SearchFilters = {};
         
-        if (category !== 'Все категории') {
-          filters.category = category;
+        if (selectedCategory !== 'Все категории') {
+          filters.category = selectedCategory;
         }
         
         const allProducts = await getProducts(filters);
         
         let filteredByTerm = allProducts;
-        if (term) {
-          const lowerTerm = term.toLowerCase();
+        if (searchTerm) {
+          const lowerTerm = searchTerm.toLowerCase();
           filteredByTerm = allProducts.filter(product => 
             product.name?.toLowerCase().includes(lowerTerm) || 
             product.description?.toLowerCase().includes(lowerTerm) ||
@@ -76,13 +95,11 @@ const SearchResults = () => {
           );
         }
         
-        const cityToFilter = city || selectedCity;
+        const cityToFilter = selectedCity === 'all' ? '' : selectedCity;
         let cityFilteredProducts = filteredByTerm;
         
-        // Улучшенная фильтрация по городу
         if (cityToFilter && !searchCountryWide) {
           cityFilteredProducts = filteredByTerm.filter(product => {
-            // Проверяем разные варианты хранения города
             const productCity = product.city || 
                               product.shop?.city || 
                               (product.shop?.addresses?.[0]?.city);
@@ -91,7 +108,6 @@ const SearchResults = () => {
           });
         }
         
-        // Фильтр по доставке
         let deliveryFilteredProducts = cityFilteredProducts;
         
         if (onlyWithDelivery) {
@@ -100,7 +116,6 @@ const SearchResults = () => {
           deliveryFilteredProducts = cityFilteredProducts.filter(product => product.hasDelivery !== true);
         }
         
-        // Фильтр по наличию
         let finalProducts = deliveryFilteredProducts;
         
         if (selectedAvailability === 'inStock') {
@@ -123,27 +138,20 @@ const SearchResults = () => {
     };
 
     fetchSearchResults();
-  }, [term, category, city, selectedCity, deliveryFilter, onlyWithDelivery, 
-      onlyWithoutDelivery, selectedAvailability, searchCountryWide, toast]);
+    updateSearchParams();
+  }, [
+    searchTerm, 
+    selectedCategory, 
+    selectedCity, 
+    onlyWithDelivery, 
+    onlyWithoutDelivery, 
+    selectedAvailability, 
+    searchCountryWide, 
+    toast
+  ]);
   
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    params.set('term', searchTerm);
-    params.set('category', selectedCategory);
-    // Убедимся, что передаем актуальный выбранный город
-    params.set('city', selectedCity || '');
-    
-    if (onlyWithDelivery) {
-      params.set('delivery', 'delivery');
-    } else if (onlyWithoutDelivery) {
-      params.set('delivery', 'nodelivery');
-    } else {
-      params.set('delivery', 'all');
-    }
-    
-    params.set('availability', selectedAvailability);
-    params.set('countrySearch', searchCountryWide.toString());
-    setSearchParams(params);
+    updateSearchParams();
   };
   
   const handleDeliveryFilterChange = (type: 'delivery' | 'nodelivery') => {
@@ -167,10 +175,16 @@ const SearchResults = () => {
   };
 
   const handleCountryWideSearch = () => {
-    setSearchCountryWide(true);
-    const params = new URLSearchParams(searchParams);
-    params.set('countrySearch', 'true');
-    setSearchParams(params);
+    setSearchCountryWide(!searchCountryWide);
+  };
+
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    if (value === 'all') {
+      setSearchCountryWide(true);
+    } else {
+      setSearchCountryWide(false);
+    }
   };
 
   return (
@@ -213,7 +227,7 @@ const SearchResults = () => {
               
               <Select
                 value={selectedCity}
-                onValueChange={setSelectedCity}
+                onValueChange={handleCityChange}
               >
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Город" />
@@ -273,7 +287,7 @@ const SearchResults = () => {
 
             <Button
               variant={searchCountryWide ? "default" : "outline"}
-              onClick={() => setSearchCountryWide(!searchCountryWide)}
+              onClick={handleCountryWideSearch}
               className="flex items-center gap-1"
             >
               <MapPin className="h-4 w-4" />
@@ -292,9 +306,10 @@ const SearchResults = () => {
         
         <div className="container py-4">
           <h2 className="text-xl font-medium mb-4">
-            {term ? `Результаты поиска: ${term}` : 'Все товары'}
-            {category !== 'Все категории' ? ` в категории ${category}` : ''}
-            {(city || selectedCity) && !searchCountryWide ? ` в городе ${city || selectedCity}` : ' по всей стране'}
+            {searchTerm ? `Результаты поиска: ${searchTerm}` : 'Все товары'}
+            {selectedCategory !== 'Все категории' ? ` в категории ${selectedCategory}` : ''}
+            {selectedCity && selectedCity !== 'all' && !searchCountryWide ? ` в городе ${selectedCity}` : ''}
+            {selectedCity === 'all' || searchCountryWide ? ' по всей стране' : ''}
             {onlyWithDelivery ? ' (только с доставкой)' : ''}
             {onlyWithoutDelivery ? ' (только без доставки)' : ''}
             {selectedAvailability === 'inStock' ? ' (только в наличии)' : ''}
@@ -308,18 +323,21 @@ const SearchResults = () => {
           ) : products.length > 0 ? (
             <ProductList 
               products={products} 
-              onUpdate={() => handleSearch()}
+              onUpdate={handleSearch}
               showDeliveryBadge={true}
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <p>Нет результатов по вашему запросу</p>
               <p className="text-sm mt-2">Попробуйте изменить параметры поиска</p>
-              {!searchCountryWide && (
+              {!searchCountryWide && selectedCity !== 'all' && (
                 <Button 
                   variant="outline" 
                   className="mt-4"
-                  onClick={handleCountryWideSearch}
+                  onClick={() => {
+                    setSearchCountryWide(true);
+                    setSelectedCity('all');
+                  }}
                 >
                   <MapPin className="h-4 w-4 mr-2" />
                   Искать по всей стране

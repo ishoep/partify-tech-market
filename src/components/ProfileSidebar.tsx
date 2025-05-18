@@ -34,9 +34,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick, excludeLin
   };
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="space-y-1 p-2">
       {!isMobile && (
-        <h2 className="mb-4 px-2 text-lg font-semibold tracking-tight">
+        <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
           Личный кабинет
         </h2>
       )}
@@ -55,7 +55,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ onLinkClick, excludeLin
               )
             }
           >
-            <link.icon className="h-5 w-5" />
+            <link.icon className="h-4 w-4" />
             <span>{link.name}</span>
           </NavLink>
         ))}

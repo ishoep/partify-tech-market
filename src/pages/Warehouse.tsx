@@ -80,81 +80,75 @@ const Warehouse: React.FC = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="hidden md:block w-full md:w-64">
-          <ProfileSidebar />
+    <MainLayout showSidebar>
+      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+          >
+            Назад
+          </Button>
         </div>
         
-        <div className="flex-1">
-          <div className="mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(-1)}
-            >
-              Назад
-            </Button>
-          </div>
-          
-          <Card className="glass-card border-0">
-            <CardHeader>
-              <CardTitle className="text-2xl text-left">Склад</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!shop ? (
-                <div className="text-center py-8">
-                  <p className="mb-4">Для управления складом необходимо создать магазин</p>
-                  <Button
-                    onClick={() => navigate('/shop')}
-                    className="mt-2"
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl sm:text-2xl">Склад</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!shop ? (
+              <div className="text-center py-8">
+                <p className="mb-4">Для управления складом необходимо создать магазин</p>
+                <Button
+                  onClick={() => navigate('/shop')}
+                  className="mt-2"
+                >
+                  Создать магазин
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4 flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Товары на складе</h3>
+                  <Button 
+                    onClick={() => setShowProductForm(!showProductForm)}
+                    disabled={loading}
                   >
-                    Создать магазин
+                    {showProductForm ? "Отмена" : "Добавить товар"}
                   </Button>
                 </div>
-              ) : (
-                <>
-                  <div className="mb-4 flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Товары на складе</h3>
-                    <Button 
-                      onClick={() => setShowProductForm(!showProductForm)}
-                      disabled={loading}
-                    >
-                      {showProductForm ? "Отмена" : "Добавить товар"}
-                    </Button>
-                  </div>
-                  
-                  {showProductForm && (
-                    <div className="mb-6">
-                      <ProductForm 
-                        shopId={currentUser?.uid || ''} 
-                        shopName={shop.name}
-                        onComplete={() => {
-                          setShowProductForm(false);
-                          refreshProducts();
-                        }}
-                        defaultStatus="На складе"
-                      />
-                    </div>
-                  )}
-                  
-                  {loading ? (
-                    <div className="flex justify-center items-center py-8">
-                      <Loader className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  ) : (
-                    <ProductList 
-                      products={products} 
-                      onUpdate={refreshProducts} 
-                      warehouseView
-                      emptyMessage="На складе нет товаров"
+                
+                {showProductForm && (
+                  <div className="mb-6">
+                    <ProductForm 
+                      shopId={currentUser?.uid || ''} 
+                      shopName={shop.name}
+                      onComplete={() => {
+                        setShowProductForm(false);
+                        refreshProducts();
+                      }}
+                      defaultStatus="На складе"
                     />
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
+                )}
+                
+                {loading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <ProductList 
+                    products={products} 
+                    onUpdate={refreshProducts} 
+                    warehouseView
+                    emptyMessage="На складе нет товаров"
+                  />
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );

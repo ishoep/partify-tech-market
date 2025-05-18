@@ -240,84 +240,286 @@ const Shop: React.FC = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="hidden md:block w-full md:w-64">
-          <ProfileSidebar />
+    <MainLayout showSidebar>
+      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+          >
+            Назад
+          </Button>
         </div>
         
-        <div className="flex-1">
-          <div className="mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(-1)}
-            >
-              Назад
-            </Button>
+        {!dataLoaded ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
-          
-          {!dataLoaded ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : !shop ? (
-            <Card className="glass-card border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl text-left">Создание магазина</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleCreateShop} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-left block">Название магазина*</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-left block">Телефон*</Label>
-                    <Input
-                      id="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+998 XX XXX XX XX"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-left block">Email*</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="telegram" className="text-left block">Telegram</Label>
-                    <Input
-                      id="telegram"
-                      value={telegram}
-                      onChange={(e) => setTelegram(e.target.value)}
-                      placeholder="@username"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website" className="text-left block">Веб-сайт</Label>
-                    <Input
-                      id="website"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="https://example.com"
-                    />
+        ) : !shop ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl sm:text-2xl">Создание магазина</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateShop} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Название магазина*</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Телефон*</Label>
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+998 XX XXX XX XX"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email*</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telegram">Telegram</Label>
+                  <Input
+                    id="telegram"
+                    value={telegram}
+                    onChange={(e) => setTelegram(e.target.value)}
+                    placeholder="@username"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Веб-сайт</Label>
+                  <Input
+                    id="website"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Адреса магазинов*</Label>
+                  {addresses.map((address, index) => (
+                    <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Адрес #{index + 1}</span>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => removeAddress(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`city-${index}`}>Город*</Label>
+                        <Select
+                          value={address.city}
+                          onValueChange={(value) => updateAddressCity(index, value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Выберите город" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cities.map((city) => (
+                              <SelectItem key={`${city}-${index}`} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`address-${index}`}>Адрес*</Label>
+                        <Input
+                          id={`address-${index}`}
+                          value={address.address}
+                          onChange={(e) => updateAddressStreet(index, e.target.value)}
+                          placeholder="ул. Примерная, д. 1"
+                          required
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={addAddress}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Добавить адрес
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Описание</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Описание вашего магазина..."
+                    rows={4}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Создание..." : "Создать магазин"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl sm:text-2xl">Управление магазином</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="products">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="products">Товары</TabsTrigger>
+                  <TabsTrigger value="delivery">Доставка</TabsTrigger>
+                  <TabsTrigger value="info">Информация</TabsTrigger>
+                  <TabsTrigger value="address">Адреса</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="products" className="pt-4">
+                  <div className="mb-4 flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Товары магазина</h3>
+                    <Button onClick={() => setShowProductForm(!showProductForm)}>
+                      {showProductForm ? "Отмена" : "Добавить товар"}
+                    </Button>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-left block mb-2">Адреса магазинов*</Label>
+                  {showProductForm && (
+                    <div className="mb-6">
+                      <ProductForm 
+                        shopId={currentUser?.uid || ''} 
+                        shopName={name}
+                        onComplete={() => {
+                          setShowProductForm(false);
+                          refreshProducts();
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  <ProductList 
+                    products={products} 
+                    onUpdate={refreshProducts} 
+                  />
+                </TabsContent>
+                
+                <TabsContent value="delivery" className="pt-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <Switch
+                        id="hasDelivery"
+                        checked={hasDelivery}
+                        onCheckedChange={setHasDelivery}
+                      />
+                      <Label htmlFor="hasDelivery">Есть доставка</Label>
+                    </div>
+                    
+                    <Button
+                      onClick={handleUpdateShop}
+                      disabled={loading}
+                    >
+                      {loading ? "Обновление..." : "Сохранить настройки"}
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="info" className="pt-4">
+                  <form onSubmit={handleUpdateShop} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Название магазина*</Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Телефон*</Label>
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+998 XX XXX XX XX"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email*</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="telegram">Telegram</Label>
+                      <Input
+                        id="telegram"
+                        value={telegram}
+                        onChange={(e) => setTelegram(e.target.value)}
+                        placeholder="@username"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Веб-сайт</Label>
+                      <Input
+                        id="website"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Описание</Label>
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Описание вашего магазина..."
+                        rows={4}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Обновление..." : "Обновить информацию"}
+                    </Button>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="address" className="pt-4">
+                  <div className="space-y-4">
+                    <Label>Адреса магазинов*</Label>
                     {addresses.map((address, index) => (
                       <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3">
                         <div className="flex justify-between items-center">
@@ -367,233 +569,25 @@ const Shop: React.FC = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full mt-2"
+                      className="w-full"
                       onClick={addAddress}
                     >
                       <Plus className="h-4 w-4 mr-2" /> Добавить адрес
                     </Button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-left block">Описание</Label>
-                    <Textarea
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Описание вашего магазина..."
-                      rows={4}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? "Создание..." : "Создать магазин"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="glass-card border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl text-left">Управление магазином</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="products">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="products">Товары</TabsTrigger>
-                    <TabsTrigger value="delivery">Доставка</TabsTrigger>
-                    <TabsTrigger value="info">Информация</TabsTrigger>
-                    <TabsTrigger value="address">Адреса</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="products" className="pt-4">
-                    <div className="mb-4 flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Товары магазина</h3>
-                      <Button onClick={() => setShowProductForm(!showProductForm)}>
-                        {showProductForm ? "Отмена" : "Добавить товар"}
-                      </Button>
-                    </div>
                     
-                    {showProductForm && (
-                      <div className="mb-6">
-                        <ProductForm 
-                          shopId={currentUser?.uid || ''} 
-                          shopName={name}
-                          onComplete={() => {
-                            setShowProductForm(false);
-                            refreshProducts();
-                          }}
-                        />
-                      </div>
-                    )}
-                    
-                    <ProductList 
-                      products={products} 
-                      onUpdate={refreshProducts} 
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="delivery" className="pt-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        <Switch
-                          id="hasDelivery"
-                          checked={hasDelivery}
-                          onCheckedChange={setHasDelivery}
-                        />
-                        <Label htmlFor="hasDelivery">Есть доставка</Label>
-                      </div>
-                      
-                      <Button
-                        onClick={handleUpdateShop}
-                        disabled={loading}
-                      >
-                        {loading ? "Обновление..." : "Сохранить настройки"}
-                      </Button>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="info" className="pt-4">
-                    <form onSubmit={handleUpdateShop} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name" className="text-left block">Название магазина*</Label>
-                        <Input
-                          id="name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-left block">Телефон*</Label>
-                        <Input
-                          id="phone"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="+998 XX XXX XX XX"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-left block">Email*</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="telegram" className="text-left block">Telegram</Label>
-                        <Input
-                          id="telegram"
-                          value={telegram}
-                          onChange={(e) => setTelegram(e.target.value)}
-                          placeholder="@username"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="website" className="text-left block">Веб-сайт</Label>
-                        <Input
-                          id="website"
-                          value={website}
-                          onChange={(e) => setWebsite(e.target.value)}
-                          placeholder="https://example.com"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="description" className="text-left block">Описание</Label>
-                        <Textarea
-                          id="description"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Описание вашего магазина..."
-                          rows={4}
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? "Обновление..." : "Обновить информацию"}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                  
-                  <TabsContent value="address" className="pt-4">
-                    <div className="space-y-4">
-                      <Label className="text-left block mb-2">Адреса магазинов*</Label>
-                      {addresses.map((address, index) => (
-                        <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Адрес #{index + 1}</span>
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeAddress(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor={`city-${index}`}>Город*</Label>
-                            <Select
-                              value={address.city}
-                              onValueChange={(value) => updateAddressCity(index, value)}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Выберите город" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {cities.map((city) => (
-                                  <SelectItem key={`${city}-${index}`} value={city}>
-                                    {city}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor={`address-${index}`}>Адрес*</Label>
-                            <Input
-                              id={`address-${index}`}
-                              value={address.address}
-                              onChange={(e) => updateAddressStreet(index, e.target.value)}
-                              placeholder="ул. Примерная, д. 1"
-                              required
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={addAddress}
-                      >
-                        <Plus className="h-4 w-4 mr-2" /> Добавить адрес
-                      </Button>
-                      
-                      <Button
-                        onClick={handleUpdateShop}
-                        disabled={loading}
-                        className="w-full"
-                      >
-                        {loading ? "Обновление..." : "Обновить адреса"}
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                    <Button
+                      onClick={handleUpdateShop}
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Обновление..." : "Обновить адреса"}
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </MainLayout>
   );

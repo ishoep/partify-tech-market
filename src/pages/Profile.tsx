@@ -13,7 +13,7 @@ import { updateUserProfile } from '@/lib/firebase';
 import { getAuth } from "firebase/auth";
 import { EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { Loader } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile'; // добавлен импорт
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Profile: React.FC = () => {
   const { currentUser, userProfile, logout } = useAuth();
@@ -27,7 +27,7 @@ const Profile: React.FC = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const isMobile = useIsMobile(); // проверка устройства
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (currentUser) {
@@ -119,124 +119,106 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="flex flex-col md:flex-row gap-6">
-        {!isMobile && (
-          <div className="w-full md:w-64">
-            <ProfileSidebar />
+    <MainLayout showSidebar>
+      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
+
+        {!dataLoaded ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl sm:text-2xl">Профиль</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="profile" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="profile">Профиль</TabsTrigger>
+                  <TabsTrigger value="password">Пароль</TabsTrigger>
+                </TabsList>
+                <TabsContent value="profile" className="pt-4">
+                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        value={currentUser?.email || ''}
+                        disabled
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Email не может быть изменен
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Имя</Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Телефон</Label>
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+998 XX XXX XX XX"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Обновление..." : "Обновить профиль"}
+                    </Button>
+                  </form>
+                </TabsContent>
+                <TabsContent value="password" className="pt-4">
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Текущий пароль</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">Новый пароль</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? "Изменение..." : "Изменить пароль"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         )}
-
-        <div className="flex-1">
-          <div className="mb-4 flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(-1)}
-            >
-              Назад
-            </Button>
-           
-          </div>
-
-          {!dataLoaded ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <Card className="glass-card border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl text-left">Профиль</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="profile" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="profile">Профиль</TabsTrigger>
-                    <TabsTrigger value="password">Пароль</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="profile">
-                    <form onSubmit={handleUpdateProfile} className="space-y-4 pt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-left block">Email</Label>
-                        <Input
-                          id="email"
-                          value={currentUser?.email || ''}
-                          disabled
-                        />
-                        <p className="text-sm text-muted-foreground text-left">
-                          Email не может быть изменен
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="name" className="text-left block">Имя</Label>
-                        <Input
-                          id="name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-left block">Телефон</Label>
-                        <Input
-                          id="phone"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="+998 XX XXX XX XX"
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? "Обновление..." : "Обновить профиль"}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                  <TabsContent value="password">
-                    <form onSubmit={handleChangePassword} className="space-y-4 pt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword" className="text-left block">Текущий пароль</Label>
-                        <Input
-                          id="currentPassword"
-                          type="password"
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword" className="text-left block">Новый пароль</Label>
-                        <Input
-                          id="newPassword"
-                          type="password"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-left block">Подтвердите новый пароль</Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? "Изменение..." : "Изменить пароль"}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          )}
-        </div>
       </div>
     </MainLayout>
   );
