@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,14 +28,11 @@ const Header: React.FC = () => {
   return (
     <header className="w-full border-b sticky top-0 bg-background z-50">
       <div className="flex items-center justify-between gap-4 px-4 py-2">
-        {/* Логотип */}
         <Link to="/" className="flex items-center text-xl font-bold text-primary">
           Teleparts
         </Link>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* Переключатель темы */}
           <ThemeToggle />
 
           {currentUser && isMobile && (
@@ -49,19 +45,14 @@ const Header: React.FC = () => {
 
               <SheetContent side="right" className="w-[85%] sm:w-[350px] p-0">
                 <SheetTitle className="sr-only">Меню</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Навигационное меню пользователя
-                </SheetDescription>
+                <SheetDescription className="sr-only">Навигационное меню пользователя</SheetDescription>
                 <div className="h-full flex flex-col">
-                  {/* Хедер сайдбара */}
                   <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="font-semibold text-lg">Меню</h2>
                     <ThemeToggle />
                   </div>
 
-                  {/* Контент */}
                   <div className="flex-1 overflow-auto">
-                    {/* Быстрые действия */}
                     <div className="p-4 border-b">
                       <Button 
                         variant="outline" 
@@ -87,14 +78,12 @@ const Header: React.FC = () => {
                       </Button>
                     </div>
 
-                    {/* Основное меню */}
                     <ProfileSidebar 
                       onLinkClick={() => setIsOpen(false)} 
                       excludeLinks={['/favorites', '/chats']} 
                     />
                   </div>
 
-                  {/* Кнопка выхода */}
                   <div className="p-4 border-t">
                     <Button 
                       variant="destructive" 
@@ -110,7 +99,6 @@ const Header: React.FC = () => {
             </Sheet>
           )}
 
-          {/* Десктоп: показываем фав/чат/профиль */}
           {currentUser && !isMobile && (
             <>
               <Button variant="ghost" size="icon" onClick={() => navigate('/favorites')}>
@@ -136,7 +124,6 @@ const Header: React.FC = () => {
             </>
           )}
 
-          {/* Гость */}
           {!currentUser && (
             <>
               <Button variant="outline" onClick={() => navigate('/login')}>

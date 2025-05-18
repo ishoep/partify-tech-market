@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import { cn } from '@/lib/utils';
@@ -25,16 +24,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const { currentUser } = useAuth();
   const isMobile = useIsMobile();
-  
+
   return (
     <div className={cn(
-      "min-h-screen flex flex-col bg-background",
+      "min-h-screen flex flex-col bg-background overflow-hidden",
       plainBackground && "bg-background"
     )}>
       <Header />
-      <div className="flex flex-1">
+      
+      <div className="flex flex-1 overflow-hidden">
         {currentUser && showSidebar && !isMobile && (
-          <div className="w-64 border-r bg-background hidden md:block">
+          <div className="w-64 border-r bg-background hidden md:block overflow-auto">
             <div className="p-4">
               <ProfileSidebar />
             </div>
@@ -42,9 +42,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         )}
         
         <main className={cn(
-          "flex-1", 
-          fullWidth ? "" : "container", 
-          compact ? "px-1 py-1" : "px-2 py-2 md:px-4 md:py-4", 
+          "flex-1 min-h-0 overflow-auto", // для корректной работы flex и скроллов
+          fullWidth ? "" : "container",
+          compact ? "px-1 py-1" : "px-2 py-2 md:px-4 md:py-4",
           className
         )}>
           {children}

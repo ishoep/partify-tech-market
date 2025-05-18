@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,6 @@ import MainLayout from '@/components/MainLayout';
 import { Search } from 'lucide-react';
 import { useCity } from '@/context/CityContext';
 
-// Simplified category list
 const categories = [
   "Все категории",
   "Запчасти",
@@ -23,22 +21,26 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    // Redirect to search results page with query params
     navigate(`/search?term=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&city=${encodeURIComponent(selectedCity)}`);
   };
 
   return (
     <MainLayout fullWidth plainBackground>
-      <div className="mt-56 flex flex-col items-center justify-center bg-background">
+      <div className="mt-56 flex flex-col items-center justify-center bg-background px-4">
+        
+        {/* Заголовок на всю ширину */}
+        <div className="w-full max-w-screen-xl text-center mb-8 px-2 sm:px-4 md:px-8">
+          <h1 className="text-4xl font-bold mb-2">
+            Запчасти и клиенты — всё в одном месте
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Поиск запчастей и управление клиентами в одном сервисе
+          </p>
+        </div>
+
+        {/* Контейнер формы с фиксированной шириной */}
         <div className="w-full max-w-lg px-4">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2">teleparts</h1>
-            <p className="text-sm text-muted-foreground">
-              Запчасти и клиенты — всё в одном месте
-            </p>
-          </div>
-          
-          <div className="space-y-4 bg-black dark:bg-white dark:bg-opacity-10 bg-opacity-5 p-6 rounded-lg">
+          <div className="space-y-4">
             <div className="relative">
               <Input
                 placeholder="Поиск запчасти..."
@@ -71,7 +73,7 @@ const Home: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select
                 value={selectedCity}
                 onValueChange={setSelectedCity}
@@ -88,7 +90,7 @@ const Home: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <Button className="w-full py-2" onClick={handleSearch}>
               Найти
             </Button>
