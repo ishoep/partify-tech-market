@@ -26,7 +26,7 @@ const Home: React.FC = () => {
 
   return (
     <MainLayout fullWidth plainBackground>
-      <div className="mt-56 flex flex-col items-center justify-center bg-background px-4">
+      <div className="mt-46 flex flex-col items-center justify-center bg-background px-4">
         
         {/* Заголовок на всю ширину */}
         <div className="w-full max-w-screen-xl text-center mb-8 px-2 sm:px-4 md:px-8">
