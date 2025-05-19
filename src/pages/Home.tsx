@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import MainLayout from '@/components/MainLayout';
 import { Search } from 'lucide-react';
 import { useCity } from '@/context/CityContext';
 import RecommendedProducts from '@/components/RecommendedProducts';
+import { getUniqueSellers } from '@/lib/firebase';
 
 const categories = [
   "Все категории",
@@ -19,11 +20,33 @@ const categories = [
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState("Все категории");
+  const [selectedSeller, setSelectedSeller] = useState('');
+  const [sellers, setSellers] = useState<string[]>([]);
   const { selectedCity, cities, setSelectedCity } = useCity();
   const navigate = useNavigate();
 
+  // Load sellers when component mounts
+  useEffect(() => {
+    const loadSellers = async () => {
+      try {
+        const uniqueSellers = await getUniqueSellers();
+        setSellers(uniqueSellers);
+      } catch (error) {
+        console.error("Error loading sellers:", error);
+      }
+    };
+    
+    loadSellers();
+  }, []);
+
   const handleSearch = () => {
-    navigate(`/search?term=${encodeURIComponent(searchTerm)}&category=${encodeURIComponent(category)}&city=${encodeURIComponent(selectedCity)}`);
+    const params = new URLSearchParams();
+    if (searchTerm) params.append('term', searchTerm);
+    if (category) params.append('category', category);
+    if (selectedCity) params.append('city', selectedCity);
+    if (selectedSeller) params.append('seller', selectedSeller);
+    
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
@@ -33,7 +56,7 @@ const Home: React.FC = () => {
           
           {/* Заголовок на всю ширину */}
           <div className="w-full max-w-screen-xl text-center mb-8 px-2 sm:px-4 md:px-8">
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2">
               Запчасти и клиенты — всё в одном месте
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -41,7 +64,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          {/* Контейнер формы с фиксированной шириной (без фона) */}
+          {/* Контейнер формы без фона и без границ */}
           <div className="w-full max-w-lg px-4 p-6 rounded-lg">
             <div className="space-y-4">
               <div className="relative">
@@ -60,7 +83,7 @@ const Home: React.FC = () => {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Select
                   value={category}
                   onValueChange={setCategory}
@@ -93,6 +116,24 @@ const Home: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <Select
+                value={selectedSeller}
+                onValueChange={setSelectedSeller}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите продавца" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Fix: Changed empty string to "all" as value */}
+                  <SelectItem value="all">Все продавцы</SelectItem>
+                  {sellers.map((seller) => (
+                    <SelectItem key={seller} value={seller}>
+                      {seller}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <Button className="w-full py-2" onClick={handleSearch}>
                 Найти

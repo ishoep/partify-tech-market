@@ -21,6 +21,10 @@ interface Product {
   discountPercent?: number;
   discountedPrice?: number;
   isFavorite?: boolean;
+  shop?: {
+    name?: string;
+    id?: string;
+  };
   [key: string]: any; // Allow other properties
 }
 
@@ -126,7 +130,11 @@ const RecommendedProducts = () => {
   };
 
   if (loading) {
-    return <div className="py-2">Загрузка рекомендаций...</div>;
+    return (
+      <div className="flex justify-center items-center py-8 w-full">
+        <p className="text-center text-muted-foreground">Загрузка рекомендаций...</p>
+      </div>
+    );
   }
 
   if (products.length === 0) {
@@ -172,6 +180,13 @@ const RecommendedProducts = () => {
                   <CardContent className="p-3 flex-grow">
                     <h3 className="font-medium line-clamp-1 text-left">{product.name}</h3>
                     <p className="text-sm text-muted-foreground line-clamp-1 mt-1 text-left">{product.category}</p>
+                    
+                    {product.shop?.name && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1 text-left">
+                        Продавец: {product.shop.name}
+                      </p>
+                    )}
+                    
                     <div className="mt-2 text-left">
                       <div className="line-through text-muted-foreground text-xs">
                         {product.price?.toLocaleString()} сум
@@ -202,10 +217,10 @@ const RecommendedProducts = () => {
           ))}
         </CarouselContent>
         {canScroll && (
-          <>
+          <React.Fragment>
             <CarouselPrevious className="-left-6 sm:-left-8 md:-left-10" />
             <CarouselNext className="-right-6 sm:-right-8 md:-right-10" />
-          </>
+          </React.Fragment>
         )}
       </Carousel>
     </div>

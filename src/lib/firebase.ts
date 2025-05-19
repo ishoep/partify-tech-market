@@ -177,19 +177,19 @@ export const getProducts = async (filters: any = {}) => {
     let q = query(productsRef);
     
     if (filters.category) {
-      q = query(productsRef, where("category", "==", filters.category));
+      q = query(q, where("category", "==", filters.category));
     }
     
     if (filters.shopId) {
-      q = query(productsRef, where("shopId", "==", filters.shopId));
+      q = query(q, where("shopId", "==", filters.shopId));
     }
     
     if (filters.status) {
-      q = query(productsRef, where("status", "==", filters.status));
+      q = query(q, where("status", "==", filters.status));
     }
     
     if (filters.minDiscount) {
-      q = query(productsRef, where("discountPercent", ">=", filters.minDiscount));
+      q = query(q, where("discountPercent", ">=", filters.minDiscount));
     }
     
     if (filters.orderBy) {
@@ -197,15 +197,48 @@ export const getProducts = async (filters: any = {}) => {
     }
     
     const querySnapshot = await getDocs(q);
-    const products: Product[] = [];
+    let products: Product[] = [];
     
     querySnapshot.forEach((doc) => {
       products.push({ id: doc.id, ...doc.data() });
     });
     
+    // Apply client-side filters for properties we can't directly query in Firestore
+    if (filters.city) {
+      products = products.filter(product => product.city === filters.city);
+    }
+    
+    if (filters.sellerName) {
+      products = products.filter(product => product.shop?.name === filters.sellerName);
+    }
+    
     return products;
   } catch (error) {
     console.error("Error in getProducts:", error);
+    return [];
+  }
+};
+
+// New function to get unique sellers
+export const getUniqueSellers = async (): Promise<string[]> => {
+  try {
+    const productsRef = collection(db, "products");
+    const q = query(productsRef);
+    const querySnapshot = await getDocs(q);
+    
+    // Create a Set to automatically filter duplicate seller names
+    const sellerNameSet = new Set<string>();
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.shop?.name) {
+        sellerNameSet.add(data.shop.name);
+      }
+    });
+    
+    return Array.from(sellerNameSet);
+  } catch (error) {
+    console.error("Error fetching unique sellers:", error);
     return [];
   }
 };
@@ -249,7 +282,8 @@ export const searchProducts = async (searchTerm: string, filters: any = {}) => {
         product.name?.toLowerCase().includes(lowerSearchTerm) ||
         product.model?.toLowerCase().includes(lowerSearchTerm) ||
         product.category?.toLowerCase().includes(lowerSearchTerm) ||
-        product.shopName?.toLowerCase().includes(lowerSearchTerm)
+        product.shopName?.toLowerCase().includes(lowerSearchTerm) ||
+        product.shop?.name?.toLowerCase().includes(lowerSearchTerm)
       );
     });
   } catch (error) {

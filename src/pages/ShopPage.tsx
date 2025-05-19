@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
-import ProductList from '@/components/ProductList';
+import ProductListWrapper from '@/components/ProductListWrapper';
 import { getShopByUserId, getProducts, getUserProfile, createChat } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { ArrowLeft, MessageCircle, Phone, Mail, MapPin, Truck } from 'lucide-react';
@@ -122,6 +122,19 @@ const ShopPage = () => {
     return [];
   };
   
+  const handleRefreshProducts = async () => {
+    try {
+      if (!shopId) return;
+      const shopProducts = await getProducts({ 
+        shopId: shopId,
+        status: 'Active' 
+      });
+      setProducts(shopProducts);
+    } catch (error) {
+      console.error('Error refreshing products:', error);
+    }
+  };
+  
   if (loading) {
     return (
       <MainLayout>
@@ -149,8 +162,6 @@ const ShopPage = () => {
   return (
     <MainLayout>
       <div className="container py-4">
-       
-        
         <div className="bg-white dark:bg-black shadow-sm rounded-lg mb-6 overflow-hidden">
           <div className="bg-primary/10 p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -272,10 +283,11 @@ const ShopPage = () => {
               
               <TabsContent value="products" className="pt-4">
                 {products.length > 0 ? (
-                  <ProductList 
+                  <ProductListWrapper 
                     products={products} 
-                    onUpdate={() => {}} 
+                    onUpdate={handleRefreshProducts} 
                     showDeliveryBadge={true}
+                    showActions={true}
                   />
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
