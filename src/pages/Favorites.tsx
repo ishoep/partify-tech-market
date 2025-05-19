@@ -61,17 +61,7 @@ const Favorites: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="mb-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Назад
-        </Button>
-      </div>
+      
       
       <div className="mb-4 text-left">
         <h1 className="text-2xl font-bold">Избранное</h1>

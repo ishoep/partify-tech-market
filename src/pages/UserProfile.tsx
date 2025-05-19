@@ -111,15 +111,7 @@ const UserProfile = () => {
   return (
     <MainLayout>
       <div className="container py-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Назад
-        </Button>
+        
         
         <div className="bg-white dark:bg-black shadow-sm rounded-lg mb-6 overflow-hidden">
           <div className="bg-primary/10 p-6">

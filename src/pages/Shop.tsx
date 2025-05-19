@@ -241,17 +241,17 @@ const Shop: React.FC = () => {
 
   return (
     <MainLayout showSidebar>
-      <div className="max-w-5xl mx-auto w-full py-4 px-2 sm:py-6">
+      <div className="w-full py-4 px-2 sm:py-6">
         {!dataLoaded ? (
           <div className="flex justify-center items-center h-64">
             <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : !shop ? (
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-none">
+            <CardHeader className="px-0 pt-0">
               <CardTitle className="text-xl sm:text-2xl">Создание магазина</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0">
               <form onSubmit={handleCreateShop} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Название магазина*</Label>
@@ -379,11 +379,11 @@ const Shop: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-none">
+            <CardHeader className="px-0 pt-0">
               <CardTitle className="text-xl sm:text-2xl">Управление магазином</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0">
               <Tabs defaultValue="products">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="products">Товары</TabsTrigger>

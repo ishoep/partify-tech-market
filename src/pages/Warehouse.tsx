@@ -4,14 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
-import ProfileSidebar from '@/components/ProfileSidebar';
 import ProductList from '@/components/ProductList';
 import ProductForm from '@/components/ProductForm';
 import { useAuth } from '@/context/AuthContext';
 import { getProducts, getShopByUserId } from '@/lib/firebase';
 import { Loader } from 'lucide-react';
 
-// Define a WarehouseProduct interface that extends Product with required fields
 interface WarehouseProduct {
   id: string;
   name: string;
@@ -36,19 +34,28 @@ const Warehouse: React.FC = () => {
       
       setLoading(true);
       try {
+        // 1. Сначала получаем данные магазина
         const shopData = await getShopByUserId(currentUser.uid);
         setShop(shopData);
         
         if (shopData) {
+          // 2. Затем получаем товары на складе
           const warehouseProducts = await getProducts({ 
-            userId: currentUser.uid,
+            shopId: currentUser.uid, // Исправлено с userId на shopId
             status: "На складе"
           });
-          // Cast retrieved products to WarehouseProduct[]
-          setProducts(warehouseProducts as unknown as WarehouseProduct[]);
+          
+          console.log("Полученные товары со склада:", warehouseProducts); // Логируем данные
+          
+          if (warehouseProducts && warehouseProducts.length > 0) {
+            setProducts(warehouseProducts as WarehouseProduct[]);
+          } else {
+            console.log("На складе нет товаров");
+            setProducts([]);
+          }
         }
       } catch (error) {
-        console.error("Error fetching warehouse data:", error);
+        console.error("Ошибка при загрузке данных склада:", error);
         toast({
           variant: "destructive",
           title: "Ошибка",
@@ -63,43 +70,39 @@ const Warehouse: React.FC = () => {
   }, [currentUser, toast]);
 
   const refreshProducts = async () => {
-    if (!currentUser) return;
+    if (!currentUser || !shop) return;
     
+    setLoading(true);
     try {
       const warehouseProducts = await getProducts({ 
-        userId: currentUser.uid,
+        shopId: currentUser.uid,
         status: "На складе"
       });
-      // Cast retrieved products to WarehouseProduct[]
-      setProducts(warehouseProducts as unknown as WarehouseProduct[]);
+      
+      console.log("Обновленные товары:", warehouseProducts); // Логируем обновленные данные
+      
+      setProducts(warehouseProducts as WarehouseProduct[]);
     } catch (error) {
-      console.error("Error refreshing products:", error);
+      console.error("Ошибка при обновлении товаров:", error);
       toast({
         variant: "destructive",
         title: "Ошибка",
         description: "Не удалось обновить список товаров",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <MainLayout showSidebar>
-      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(-1)}
-          >
-            Назад
-          </Button>
-        </div>
+      <div className="w-full py-4 px-2 sm:py-6">
         
-        <Card>
-          <CardHeader>
+        <Card className="border-0 shadow-none">
+          <CardHeader className="px-0 pt-0">
             <CardTitle className="text-xl sm:text-2xl">Склад</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0">
             {!shop ? (
               <div className="text-center py-8">
                 <p className="mb-4">Для управления складом необходимо создать магазин</p>

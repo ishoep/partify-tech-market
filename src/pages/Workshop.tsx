@@ -153,16 +153,8 @@ const Workshop: React.FC = () => {
 
   return (
     <MainLayout showSidebar>
-      <div className="container max-w-6xl mx-auto py-4 px-2 sm:py-6">
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(-1)}
-          >
-            Назад
-          </Button>
-        </div>
+      <div className="w-full py-4 px-2 sm:py-6">
+        
         
         <Card className="w-full">
           <CardHeader className="pb-2">
