@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { uploadImage } from '@/lib/imgbb';
-import { createProduct } from '@/lib/firebase';
+import { createProduct, updateProduct, getProductById } from '@/lib/firebase';
 import { Switch } from '@/components/ui/switch';
 
 // Упрощенный список категорий
@@ -22,13 +22,15 @@ interface ProductFormProps {
   shopName: string;
   onComplete: () => void;
   defaultStatus?: string;
+  productId?: string; // Add productId for editing
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ 
   shopId, 
   shopName, 
   onComplete,
-  defaultStatus = "На витрине"
+  defaultStatus = "На витрине",
+  productId
 }) => {
   const [name, setName] = useState('');
   const [model, setModel] = useState('');
@@ -40,8 +42,47 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [existingImageUrl, setExistingImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(!!productId);
   const { toast } = useToast();
+  const isEditMode = !!productId;
+
+  // Load product data if in edit mode
+  React.useEffect(() => {
+    const loadProductData = async () => {
+      if (productId) {
+        try {
+          const product = await getProductById(productId);
+          if (product) {
+            setName(product.name || '');
+            setModel(product.model || '');
+            setCategory(product.category || '');
+            setPrice(String(product.price || ''));
+            setDiscount(String(product.discountPercent || 0));
+            setIsInStock(product.status !== "По предзаказу");
+            setQuantity(String(product.quantity || 0));
+            setDescription(product.description || '');
+            if (product.imageUrl) {
+              setExistingImageUrl(product.imageUrl);
+              setImagePreview(product.imageUrl);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading product data", error);
+          toast({
+            variant: "destructive",
+            title: "Ошибка",
+            description: "Не удалось загрузить данные товара",
+          });
+        } finally {
+          setIsLoadingProduct(false);
+        }
+      }
+    };
+
+    loadProductData();
+  }, [productId, toast]);
 
   // Вычисляем финальную цену со скидкой
   const discountedPrice = price ? Math.round(Number(price) * (1 - Number(discount) / 100)) : 0;
@@ -63,6 +104,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Make sure discount is not greater than 100%
+    if (Number(value) > 100) {
+      setDiscount('100');
+    } else {
+      setDiscount(value);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -78,7 +129,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     setLoading(true);
     
     try {
-      let imageUrl = '';
+      let imageUrl = existingImageUrl;
       
       if (image) {
         try {
@@ -94,7 +145,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         Math.round(originalPrice * (1 - discountPercent / 100)) : 
         originalPrice;
       
-      await createProduct({
+      const productData = {
         name,
         model,
         category,
@@ -106,39 +157,60 @@ const ProductForm: React.FC<ProductFormProps> = ({
         imageUrl,
         shopId,
         shopName,
-        status: isInStock ? defaultStatus : "Нет в наличии",
+        status: isInStock ? defaultStatus : "По предзаказу",
         hasDelivery: false,
-        createdAt: new Date(),
-      });
+        updatedAt: new Date(),
+      };
+
+      if (isEditMode) {
+        // Update existing product
+        await updateProduct(productId, productData);
+        toast({
+          title: "Успех",
+          description: "Товар обновлен",
+        });
+      } else {
+        // Create new product
+        await createProduct({
+          ...productData,
+          createdAt: new Date(),
+        });
+        toast({
+          title: "Успех",
+          description: "Товар добавлен",
+        });
+      }
       
-      toast({
-        title: "Успех",
-        description: "Товар добавлен",
-      });
-      
-      // Reset form
-      setName('');
-      setModel('');
-      setCategory('');
-      setPrice('');
-      setDiscount('0');
-      setIsInStock(true);
-      setQuantity('1');
-      setDescription('');
-      setImage(null);
-      setImagePreview('');
+      // Reset form for new product mode
+      if (!isEditMode) {
+        setName('');
+        setModel('');
+        setCategory('');
+        setPrice('');
+        setDiscount('0');
+        setIsInStock(true);
+        setQuantity('1');
+        setDescription('');
+        setImage(null);
+        setImagePreview('');
+        setExistingImageUrl('');
+      }
       
       onComplete();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: error.message || "Не удалось добавить товар",
+        description: error.message || `Не удалось ${isEditMode ? 'обновить' : 'добавить'} товар`,
       });
     } finally {
       setLoading(false);
     }
   };
+
+  if (isLoadingProduct) {
+    return <div className="p-4 text-center">Загрузка данных товара...</div>;
+  }
 
   return (
     <div className="border rounded p-3">
@@ -201,9 +273,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
               id="discount"
               type="number"
               value={discount}
-              onChange={(e) => setDiscount(e.target.value)}
+              onChange={handleDiscountChange}
               min={0}
-              max={99}
+              max={100}
             />
             {Number(discount) > 0 && Number(price) > 0 && (
               <div className="mt-1 text-sm text-muted-foreground text-left">
@@ -268,7 +340,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           disabled={loading}
           className="w-full"
         >
-          {loading ? "Добавление..." : "Добавить товар"}
+          {loading ? (isEditMode ? "Обновление..." : "Добавление...") : (isEditMode ? "Обновить товар" : "Добавить товар")}
         </Button>
       </form>
     </div>

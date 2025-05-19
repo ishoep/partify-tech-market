@@ -30,6 +30,7 @@ const RecommendedProducts = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { currentUser } = useAuth();
+  const [canScroll, setCanScroll] = useState(false);
 
   useEffect(() => {
     const fetchRecommendedProducts = async () => {
@@ -58,6 +59,8 @@ const RecommendedProducts = () => {
         }
         
         setProducts(recommendedProducts);
+        // If there are more than 4 items on desktop or more than 1 on mobile, show scroll buttons
+        setCanScroll(recommendedProducts.length > 4);
       } catch (error) {
         console.error("Error fetching recommended products:", error);
         toast({
@@ -131,8 +134,8 @@ const RecommendedProducts = () => {
   }
 
   return (
-    <div className="py-4 w-full">
-      <h2 className="text-xl font-bold mb-4 text-left">Рекомендуемые товары</h2>
+    <div className="py-8 w-full mt-4">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center">Рекомендуемые товары</h2>
       
       <Carousel 
         className="w-full"
@@ -198,10 +201,12 @@ const RecommendedProducts = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <div className="hidden sm:block">
-          <CarouselPrevious className="left-0" />
-          <CarouselNext className="right-0" />
-        </div>
+        {canScroll && (
+          <>
+            <CarouselPrevious className="-left-6 sm:-left-8 md:-left-10" />
+            <CarouselNext className="-right-6 sm:-right-8 md:-right-10" />
+          </>
+        )}
       </Carousel>
     </div>
   );

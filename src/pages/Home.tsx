@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          {/* Контейнер формы с фиксированной шириной (фон убран) */}
+          {/* Контейнер формы с фиксированной шириной (без фона) */}
           <div className="w-full max-w-lg px-4 p-6 rounded-lg">
             <div className="space-y-4">
               <div className="relative">
