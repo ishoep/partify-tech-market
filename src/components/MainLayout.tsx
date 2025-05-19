@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 import React from 'react';
 import Header from '@/components/Header';
 import { cn } from '@/lib/utils';
