@@ -12,7 +12,11 @@ import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/firebase';
 import { getAuth } from "firebase/auth";
 import { EmailAuthProvider, updateProfile, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+<<<<<<< HEAD
 import { Loader, LogOut } from 'lucide-react';
+=======
+import { Loader } from 'lucide-react';
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Profile: React.FC = () => {
@@ -120,13 +124,19 @@ const Profile: React.FC = () => {
 
   return (
     <MainLayout showSidebar>
+<<<<<<< HEAD
       <div className="max-w-5xl mx-auto w-full py-4 px-2 sm:py-6">
+=======
+      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
+
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         {!dataLoaded ? (
           <div className="flex justify-center items-center h-64">
             <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <Card>
+<<<<<<< HEAD
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl sm:text-2xl">Профиль</CardTitle>
               <Button 
@@ -137,6 +147,10 @@ const Profile: React.FC = () => {
                 <LogOut size={16} />
                 Выйти
               </Button>
+=======
+            <CardHeader>
+              <CardTitle className="text-xl sm:text-2xl">Профиль</CardTitle>
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="profile" className="w-full">
@@ -231,4 +245,8 @@ const Profile: React.FC = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Profile;
+=======
+export default Profile;
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,14 +15,21 @@ import { useAuth } from '@/context/AuthContext';
 import { getProducts, getShopByUserId } from '@/lib/firebase';
 import { Loader } from 'lucide-react';
 
+<<<<<<< HEAD
 // Define a WarehouseProduct interface that extends Product with required fields
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 interface WarehouseProduct {
   id: string;
   name: string;
   quantity: number;
   price: number;
   status: string;
+<<<<<<< HEAD
   // Другие необходимые поля
+=======
+  // Добавьте другие необходимые поля
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 }
 
 const Warehouse: React.FC = () => {
@@ -45,8 +55,12 @@ const Warehouse: React.FC = () => {
             userId: currentUser.uid,
             status: "На складе"
           });
+<<<<<<< HEAD
           // Cast retrieved products to WarehouseProduct[]
           setProducts(warehouseProducts as unknown as WarehouseProduct[]);
+=======
+          setProducts(warehouseProducts);
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         }
       } catch (error) {
         console.error("Error fetching warehouse data:", error);
@@ -71,8 +85,12 @@ const Warehouse: React.FC = () => {
         userId: currentUser.uid,
         status: "На складе"
       });
+<<<<<<< HEAD
       // Cast retrieved products to WarehouseProduct[]
       setProducts(warehouseProducts as unknown as WarehouseProduct[]);
+=======
+      setProducts(warehouseProducts);
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
     } catch (error) {
       console.error("Error refreshing products:", error);
       toast({
@@ -158,4 +176,8 @@ const Warehouse: React.FC = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Warehouse;
+=======
+export default Warehouse;
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d

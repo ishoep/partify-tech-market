@@ -4,7 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+<<<<<<< HEAD
 import { Heart, Truck, Package, Percent } from 'lucide-react';
+=======
+import { Heart, Truck, Package } from 'lucide-react';
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 import { useAuth } from '@/context/AuthContext';
 import { addToFavorites, removeFromFavorites, isProductInFavorites } from '@/lib/firebase';
 import { useToast } from '@/components/ui/use-toast';
@@ -53,16 +57,22 @@ const ProductList: React.FC<ProductListProps> = ({
       
       if (isInFavorites) {
         await removeFromFavorites(currentUser.uid, product.id);
+<<<<<<< HEAD
         // Immediately update the UI state
         product.isFavorite = false;
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         toast({
           title: "Успех",
           description: "Товар удален из избранного."
         });
       } else {
         await addToFavorites(currentUser.uid, product.id);
+<<<<<<< HEAD
         // Immediately update the UI state
         product.isFavorite = true;
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         toast({
           title: "Успех",
           description: "Товар добавлен в избранное."
@@ -89,7 +99,11 @@ const ProductList: React.FC<ProductListProps> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {products.map((product) => (
         <Card key={product.id} className="overflow-hidden flex flex-col h-full">
+<<<<<<< HEAD
           {/* Изображение товара */}
+=======
+          {/* Измененная секция изображения */}
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
           <div 
             className="relative h-48 w-full bg-gray-100 flex items-center justify-center cursor-pointer"
             onClick={() => handleViewProduct(product.id)}
@@ -103,6 +117,7 @@ const ProductList: React.FC<ProductListProps> = ({
             ) : (
               <Package className="h-12 w-12 text-gray-400" />
             )}
+<<<<<<< HEAD
             
             {/* Значок скидки */}
             {product.discountPercent > 0 && (
@@ -111,6 +126,8 @@ const ProductList: React.FC<ProductListProps> = ({
                 <span className="text-xs font-bold">{product.discountPercent}%</span>
               </div>
             )}
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
           </div>
           
           <CardHeader className="p-3">
@@ -134,7 +151,11 @@ const ProductList: React.FC<ProductListProps> = ({
                 </Badge>
               )}
               <Badge variant={product.quantity > 0 ? "default" : "destructive"}>
+<<<<<<< HEAD
                 {product.quantity > 0 ? "В наличии" : "По предзаказу"}
+=======
+                {product.quantity > 0 ? "В наличии" : "Нет в наличии"}
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
               </Badge>
             </div>
           </CardHeader>
@@ -143,6 +164,7 @@ const ProductList: React.FC<ProductListProps> = ({
             <p className="text-muted-foreground text-sm line-clamp-2">
               {product.description || 'Нет описания'}
             </p>
+<<<<<<< HEAD
             <p className="font-bold mt-2 flex items-center">
               {product.discountPercent > 0 ? (
                 <>
@@ -156,6 +178,10 @@ const ProductList: React.FC<ProductListProps> = ({
               ) : (
                 product.price ? `${product.price.toLocaleString()} сум` : 'Цена не указана'
               )}
+=======
+            <p className="font-bold mt-2">
+              {product.price ? `${product.price} сум` : 'Цена не указана'}
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
             </p>
           </CardContent>
           

@@ -34,7 +34,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [model, setModel] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
+<<<<<<< HEAD
   const [discount, setDiscount] = useState('0');
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
   const [isInStock, setIsInStock] = useState(true);
   const [quantity, setQuantity] = useState('1');
   const [description, setDescription] = useState('');
@@ -43,9 +46,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+<<<<<<< HEAD
   // Вычисляем финальную цену со скидкой
   const discountedPrice = price ? Math.round(Number(price) * (1 - Number(discount) / 100)) : 0;
 
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -87,20 +93,27 @@ const ProductForm: React.FC<ProductFormProps> = ({
           console.error("Error uploading image:", uploadError);
         }
       }
+<<<<<<< HEAD
 
       const discountPercent = Number(discount);
       const originalPrice = Number(price);
       const finalPrice = discountPercent > 0 ? 
         Math.round(originalPrice * (1 - discountPercent / 100)) : 
         originalPrice;
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
       
       await createProduct({
         name,
         model,
         category,
+<<<<<<< HEAD
         price: originalPrice,
         discountPercent: discountPercent,
         discountedPrice: finalPrice,
+=======
+        price: Number(price),
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         quantity: Number(quantity),
         description,
         imageUrl,
@@ -121,7 +134,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setModel('');
       setCategory('');
       setPrice('');
+<<<<<<< HEAD
       setDiscount('0');
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
       setIsInStock(true);
       setQuantity('1');
       setDescription('');
@@ -194,6 +210,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               required
             />
           </div>
+<<<<<<< HEAD
 
           <div>
             <Label htmlFor="discount" className="text-left block mb-1">Скидка (%)</Label>
@@ -211,6 +228,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
               </div>
             )}
           </div>
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
           
           <div className="flex items-center space-x-2">
             <Switch 

@@ -1,6 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
+<<<<<<< HEAD
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, orderBy, limit, DocumentData, QuerySnapshot } from "firebase/firestore";
+=======
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, DocumentData, QuerySnapshot } from "firebase/firestore";
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 import { getAnalytics } from "firebase/analytics";
 
 // Define interfaces for better typing
@@ -154,6 +158,7 @@ export const createProduct = async (productData: any) => {
   });
 };
 
+<<<<<<< HEAD
 // Define Product interface to fix type errors
 interface Product {
   id: string;
@@ -170,6 +175,8 @@ interface Product {
   [key: string]: any; // Allow additional properties
 }
 
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 export const getProducts = async (filters: any = {}) => {
   try {
     const productsRef = collection(db, "products");
@@ -188,6 +195,7 @@ export const getProducts = async (filters: any = {}) => {
       q = query(productsRef, where("status", "==", filters.status));
     }
     
+<<<<<<< HEAD
     if (filters.minDiscount) {
       q = query(productsRef, where("discountPercent", ">=", filters.minDiscount));
     }
@@ -198,6 +206,10 @@ export const getProducts = async (filters: any = {}) => {
     
     const querySnapshot = await getDocs(q);
     const products: Product[] = [];
+=======
+    const querySnapshot = await getDocs(q);
+    const products: any[] = [];
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
     
     querySnapshot.forEach((doc) => {
       products.push({ id: doc.id, ...doc.data() });
@@ -210,6 +222,7 @@ export const getProducts = async (filters: any = {}) => {
   }
 };
 
+<<<<<<< HEAD
 export const getRecommendedProducts = async (limitCount = 10) => {
   try {
     const productsRef = collection(db, "products");
@@ -234,6 +247,8 @@ export const getRecommendedProducts = async (limitCount = 10) => {
   }
 };
 
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 export const searchProducts = async (searchTerm: string, filters: any = {}) => {
   try {
     // Due to Firebase limitations with text search, we'll fetch all products
@@ -258,13 +273,21 @@ export const searchProducts = async (searchTerm: string, filters: any = {}) => {
   }
 };
 
+<<<<<<< HEAD
 export const getProductById = async (productId: string): Promise<Product | null> => {
+=======
+export const getProductById = async (productId: string) => {
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
   try {
     const docRef = doc(db, "products", productId);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
+<<<<<<< HEAD
       return { id: docSnap.id, ...docSnap.data() } as Product;
+=======
+      return { id: docSnap.id, ...docSnap.data() };
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
     } else {
       return null;
     }
@@ -298,6 +321,7 @@ export const updateProduct = async (productId: string, productData: any) => {
     }
   }
   
+<<<<<<< HEAD
   // If price or discount changed, recalculate the discounted price
   if ((productData.price !== undefined || productData.discountPercent !== undefined)) {
     const currentProduct = await getProductById(productId);
@@ -313,6 +337,8 @@ export const updateProduct = async (productId: string, productData: any) => {
     }
   }
   
+=======
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
   return updateDoc(productRef, {
     ...productData,
     updatedAt: new Date(),
@@ -435,7 +461,11 @@ export const getFavorites = async (userId: string) => {
     });
     
     // Get full product details for each favorite
+<<<<<<< HEAD
     const favoriteProducts: Product[] = [];
+=======
+    const favoriteProducts: any[] = [];
+>>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
     
     for (const productId of favoriteIds) {
       const product = await getProductById(productId);
