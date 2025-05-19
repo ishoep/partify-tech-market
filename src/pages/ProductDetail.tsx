@@ -5,24 +5,16 @@ import { useToast } from '@/components/ui/use-toast';
 import MainLayout from '@/components/MainLayout';
 import { useAuth } from '@/context/AuthContext';
 import { getProductById, getShopByUserId, addToFavorites, removeFromFavorites, getFavorites, createChat } from '@/lib/firebase';
-<<<<<<< HEAD
 import { Heart, ShoppingBag, MessageCircle, Truck, ArrowLeft, Percent } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-=======
-import { Heart, ShoppingBag, MessageCircle, Truck, ArrowLeft } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 
 interface Product {
   id: string;
   name?: string;
   price?: number;
-<<<<<<< HEAD
   discountPercent?: number;
   discountedPrice?: number;
-=======
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
   description?: string;
   category?: string;
   model?: string;
@@ -30,10 +22,7 @@ interface Product {
   shopId?: string;
   shopName?: string;
   hasDelivery?: boolean;
-<<<<<<< HEAD
   quantity?: number; // Adding the quantity property
-=======
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
 }
 
 const ProductDetail: React.FC = () => {
@@ -192,31 +181,13 @@ const ProductDetail: React.FC = () => {
 
   return (
     <MainLayout compact>
-<<<<<<< HEAD
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="border rounded overflow-hidden relative">
-=======
-      <div className="mb-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Назад
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="border rounded overflow-hidden">
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
           <img
             src={product?.imageUrl || "https://placehold.co/600x400?text=Нет+фото"}
             alt={product?.name}
             className="object-contain h-full w-full max-h-[400px]"
           />
-<<<<<<< HEAD
           {/* Значок скидки */}
           {product.discountPercent && product.discountPercent > 0 && (
             <div className="absolute top-3 left-3 bg-red-500 text-white rounded-full px-2 py-1 flex items-center">
@@ -224,8 +195,6 @@ const ProductDetail: React.FC = () => {
               <span className="text-sm font-bold">{product.discountPercent}%</span>
             </div>
           )}
-=======
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         </div>
         
         <div className="space-y-4">
@@ -244,7 +213,6 @@ const ProductDetail: React.FC = () => {
           </div>
           
           <div className="text-2xl font-bold text-left">
-<<<<<<< HEAD
             {product.discountPercent && product.discountPercent > 0 ? (
               <div className="flex items-center">
                 <span className="line-through text-muted-foreground mr-3 text-xl">
@@ -264,9 +232,6 @@ const ProductDetail: React.FC = () => {
             <Badge variant={product.quantity > 0 ? "default" : "destructive"}>
               {product.quantity > 0 ? "�� наличии" : "По предзаказу"}
             </Badge>
-=======
-            {product?.price?.toLocaleString()} UZS
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
           </div>
           
           <Separator />

@@ -241,21 +241,7 @@ const Shop: React.FC = () => {
 
   return (
     <MainLayout showSidebar>
-<<<<<<< HEAD
       <div className="max-w-5xl mx-auto w-full py-4 px-2 sm:py-6">
-=======
-      <div className="container max-w-5xl mx-auto py-4 px-2 sm:py-6">
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(-1)}
-          >
-            Назад
-          </Button>
-        </div>
-        
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
         {!dataLoaded ? (
           <div className="flex justify-center items-center h-64">
             <Loader className="h-8 w-8 animate-spin text-primary" />
@@ -597,8 +583,4 @@ const Shop: React.FC = () => {
   );
 };
 
-<<<<<<< HEAD
 export default Shop;
-=======
-export default Shop;
->>>>>>> 355bd4cb5ae7e1614833ed2d569801eb6be3e56d
